@@ -51,8 +51,8 @@ input double InpPipValueUSDJPY = 7.60;
 input double InpPipValueXAUUSD = 8.60;
 
 string objectNamePrefix = "GjoSeRisk_";
-long     positionTickets[];
 CPositions  Positions;
+CPending    Pending;
 CNewBar     NewBar;
 CTimer      Timer;
 
@@ -61,16 +61,25 @@ const string MY_INDICATOR_SHORTNAME = "GjoSeRisk";
 const string RISK_LEVEL = "RiskLevel";
 
 struct PositionStruct {
-   string   SymbolString;
-   int      Count;
-   double   Volume;
-   int      Risk;
-   double   RiskPercent;
-   int      Reward;
-   double   RewardPercent;
-   double   RRR;
-   int      Profit;
-   int      ProfitPip;
+   string            SymbolString;
+   int               buyPositionsCount;
+   double            buyPositionsVolume;
+   double            buyPositionsLevelVolume;
+   int               sellPositionsCount;
+   double            sellPositionsVolume;
+   double            sellPositionsLevelVolume;
+   int               buyOrdersCount;
+   double            buyOrdersVolume;
+   int               sellOrdersCount;
+   double            sellOrdersVolume;
+
+//   int      Risk;
+//   double   RiskPercent;
+//   int      Reward;
+//   double   RewardPercent;
+//   double   RRR;
+//   int      Profit;
+//   int      ProfitPip;
 };
 
 PositionStruct symbolArray[];
@@ -115,23 +124,21 @@ void calculateRisk() {
    if (subWindow <= 0) subWindow = 0;
 
    ArrayResize(symbolArray, 0);
-   ArrayResize(accountArray, 0);
+//   ArrayResize(accountArray, 0);
 
-   // LOGIK:
-   // -  Positions holen
-   // -  Risk je POS berechnen
-   // -  POS zu Symbol addieren
-   // -  POS zu Account Addieren
-   // -  Comment als Label ausgeben - siehe createLabel()
+// LOGIK:
+// -  Positions holen
+// -  Risk je POS berechnen
+// -  POS zu Symbol addieren
+// -  POS zu Account Addieren
+// -  Comment als Label ausgeben - siehe createLabel()
 
-   initializeArray(positionTickets);
-   Positions.GetTickets(0, positionTickets);
 
-   
 
-   //string positionComment, symbolComment, accountComment;
-   //long chartId;
+//string positionComment, symbolComment, accountComment;
+//long chartId;
    long    positionTicket = 0;
+   long    pendingTicket = 0;
    string  positionSymbol;
    string  positionType;
    double  positionOpenPrice = 0;
@@ -151,7 +158,7 @@ void calculateRisk() {
    double riskLevelSell;
    int    positionReward = 0;
    double positionRewardPercent = 0;
-   //int   positionBreakEven = 0;
+//int   positionBreakEven = 0;
    double  symbolRisk = 0;
    double  accountRisk = 0;
    double  positionRRR = 0;
@@ -201,17 +208,17 @@ void calculateRisk() {
    double maxSymbolRisk = maxAccountRisk / InpSymbolCount;
    double maxPositionRisk = maxSymbolRisk * InpMaxPositionRiskPercent / 100;
 
-   //createAccountHeadline
-   createLabel(0, objectNamePrefix + "AccountHeadline", subWindow, xCordHeadline, yCordAccountHeadline, "Account", headLineFontSize);
-   createLabel(0, objectNamePrefix + "AccountPositionsHeadline", subWindow, xCordPositionsHeadline, yCordAccountPositionsAndOrdersHeadlineHeadline, "Positions", positionsAndOrdersFontSize);
-   createLabel(0, objectNamePrefix + "AccountOrdersHeadline", subWindow, xCordOrdersHeadline, yCordAccountPositionsAndOrdersHeadlineHeadline, "Orders", positionsAndOrdersFontSize);
+//createAccountHeadline
+//   createLabel(0, objectNamePrefix + "AccountHeadline", subWindow, xCordHeadline, yCordAccountHeadline, "Account", headLineFontSize);
+//   createLabel(0, objectNamePrefix + "AccountPositionsHeadline", subWindow, xCordPositionsHeadline, yCordAccountPositionsAndOrdersHeadlineHeadline, "Positions", positionsAndOrdersFontSize);
+//   createLabel(0, objectNamePrefix + "AccountOrdersHeadline", subWindow, xCordOrdersHeadline, yCordAccountPositionsAndOrdersHeadlineHeadline, "Orders", positionsAndOrdersFontSize);
+//
+//   //createSymbolsHeadline
+//   createLabel(0, objectNamePrefix + "SymbolsHeadline", subWindow, xCordHeadline, yCordSymbolsHeadline, "Symbols", headLineFontSize);
+//   createLabel(0, objectNamePrefix + "SymbolsPositionsHeadline", subWindow, xCordPositionsHeadline, yCordSymbolsPositionsAndOrdersHeadlineHeadline, "Positions", positionsAndOrdersFontSize);
+//   createLabel(0, objectNamePrefix + "SymbolsOrdersHeadline", subWindow, xCordOrdersHeadline, yCordSymbolsPositionsAndOrdersHeadlineHeadline, "Orders", positionsAndOrdersFontSize);
 
-   //createSymbolsHeadline
-   createLabel(0, objectNamePrefix + "SymbolsHeadline", subWindow, xCordHeadline, yCordSymbolsHeadline, "Symbols", headLineFontSize);
-   createLabel(0, objectNamePrefix + "SymbolsPositionsHeadline", subWindow, xCordPositionsHeadline, yCordSymbolsPositionsAndOrdersHeadlineHeadline, "Positions", positionsAndOrdersFontSize);
-   createLabel(0, objectNamePrefix + "SymbolsOrdersHeadline", subWindow, xCordOrdersHeadline, yCordSymbolsPositionsAndOrdersHeadlineHeadline, "Orders", positionsAndOrdersFontSize);
-
-   //createTradesHeadline
+//createTradesHeadline
 //   createLabel(0, objectNamePrefix + "TradesHeadline", subWindow, xCordHeadline, yCordTradesHeadline, "Trades", headLineFontSize);
 //   createLabel(0, objectNamePrefix + "TradesPositionsHeadline", subWindow, xCordPositionsHeadline, yCordTradesPositionsAndOrdersHeadlineHeadline, "Positions", positionsAndOrdersFontSize);
 //   createLabel(0, objectNamePrefix + "TradesOrdersHeadline", subWindow, xCordOrdersHeadline, yCordTradesPositionsAndOrdersHeadlineHeadline, "Orders", positionsAndOrdersFontSize);
@@ -223,18 +230,25 @@ void calculateRisk() {
 
 
 
-   for(int positionTicketIndex = 0; positionTicketIndex < ArraySize(positionTickets); positionTicketIndex++) {
-      positionIsSafe = false;
-      positionColor = clrBlack;
-      positionTicket = positionTickets[positionTicketIndex];
-      positionSymbol = PositionSymbol(positionTicket);
-      if(PositionType(positionTicket)  == 0) positionType = "BUY";
-      else positionType = "SELL";
-      positionOpenPrice = PositionOpenPrice(positionTicket);
-      positionVolume = PositionVolume(positionTicket);
-      positionStopLoss = PositionStopLoss(positionTicket);
-      positionTakeProfit = PositionTakeProfit(positionTicket);
-      hLineLevel = getHlineLevelByText(RISK_LEVEL, getChartIDBySymbol(positionSymbol));
+
+
+   long  positionTickets[];
+   ulong magicNumber = 0;
+   initializeArray(positionTickets);
+   Positions.GetTickets(magicNumber, positionTickets);
+   for(int positionTicketId = 0; positionTicketId < ArraySize(positionTickets); positionTicketId++) {
+//      positionIsSafe = false;
+//      positionColor = clrBlack;
+      positionTicket = positionTickets[positionTicketId];
+
+//      positionSymbol = PositionSymbol(positionTicket);
+//      if(PositionType(positionTicket)  == 0) positionType = "BUY";
+//      else positionType = "SELL";
+//      positionOpenPrice = PositionOpenPrice(positionTicket);
+//      positionVolume = PositionVolume(positionTicket);
+//      positionStopLoss = PositionStopLoss(positionTicket);
+//      positionTakeProfit = PositionTakeProfit(positionTicket);
+      // hLineLevel = getHlineLevelByText(RISK_LEVEL, getChartIDBySymbol(positionSymbol));
 //      trendLineLevel = getTrendlineLevelByText(RISK_LEVEL, positionSymbol, getChartIDBySymbol(positionSymbol));
 
       //Print(positionSymbol + " ChartId: " + getChartIDBySymbol(positionSymbol) + " hLineLevel: " + hLineLevel + " trendLineLevel: " + trendLineLevel);
@@ -250,214 +264,302 @@ void calculateRisk() {
 //      ok - jeweils 1x ohne TP, 1x ohne SL
 
       // Positions
-      if(PositionType(positionTicket) == POSITION_TYPE_BUY) {
-         riskLevelBuy = getRiskLevelBuy(positionStopLoss, hLineLevel, trendLineLevel);
-         pipRisk = (positionOpenPrice - riskLevelBuy) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
-         pipReward = (positionTakeProfit - positionOpenPrice) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
-         pipProfit = (SymbolInfoDouble(positionSymbol, SYMBOL_BID) - positionOpenPrice) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
-      } else {
-         riskLevelSell = getRiskLevelSell(positionStopLoss, hLineLevel, trendLineLevel);
-         pipRisk = (riskLevelSell - positionOpenPrice) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
-         pipReward = (positionOpenPrice - positionTakeProfit) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
-         pipProfit = (positionOpenPrice - SymbolInfoDouble(positionSymbol, SYMBOL_BID)) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
-      }
+//      if(PositionType(positionTicket) == POSITION_TYPE_BUY) {
+//         //riskLevelBuy = getRiskLevelBuy(positionStopLoss, hLineLevel, trendLineLevel);
+//         pipRisk = (positionOpenPrice - riskLevelBuy) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
+//         pipReward = (positionTakeProfit - positionOpenPrice) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
+//         pipProfit = (SymbolInfoDouble(positionSymbol, SYMBOL_BID) - positionOpenPrice) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
+//      } else {
+//         //riskLevelSell = getRiskLevelSell(positionStopLoss, hLineLevel, trendLineLevel);
+//         pipRisk = (riskLevelSell - positionOpenPrice) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
+//         pipReward = (positionOpenPrice - positionTakeProfit) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
+//         pipProfit = (positionOpenPrice - SymbolInfoDouble(positionSymbol, SYMBOL_BID)) / SymbolInfoDouble(positionSymbol, SYMBOL_POINT) / 10 ;
+//      }
 
-      positionRisk = (int)(pipRisk * getPipValueBySymbol(PositionSymbol(positionTicket)) * positionVolume);
-      positionRiskPercent = positionRisk / AccountInfoDouble(ACCOUNT_BALANCE) * 100;
-      positionProfit = (int)(pipProfit * getPipValueBySymbol(PositionSymbol(positionTicket)) * positionVolume);
-      positionReward = (int)(pipReward * getPipValueBySymbol(PositionSymbol(positionTicket)) * positionVolume);
-      positionRewardPercent = positionReward / AccountInfoDouble(ACCOUNT_BALANCE) * 100;
+//      //positionRisk = (int)(pipRisk * getPipValueBySymbol(PositionSymbol(positionTicket)) * positionVolume);
+//      positionRiskPercent = positionRisk / AccountInfoDouble(ACCOUNT_BALANCE) * 100;
+//      //positionProfit = (int)(pipProfit * getPipValueBySymbol(PositionSymbol(positionTicket)) * positionVolume);
+//      //positionReward = (int)(pipReward * getPipValueBySymbol(PositionSymbol(positionTicket)) * positionVolume);
+//      positionRewardPercent = positionReward / AccountInfoDouble(ACCOUNT_BALANCE) * 100;
+//
+//      positionRRR = (double)positionReward / (double)positionRisk;
 
-      positionRRR = (double)positionReward / (double)positionRisk;
-
-      if((riskLevelBuy == 0 && riskLevelSell == 0) || positionTakeProfit == 0) {
-         positionLabelObjectFix = positionSymbol + " - " + IntegerToString(positionTicket) + " SL & TP setzen!";
-         positionColor = clrBlue;
-      } else {
-         if(positionRisk < 0) {
-            positionLabelObjectFix = positionSymbol + " - " + IntegerToString(positionTicket) + " | Position is safe!: " + IntegerToString(positionRisk * -1) + " €";
-            positionColor = clrGreen;
-         } else {
-            positionLabelObjectFix = positionSymbol + " - " + IntegerToString(positionTicket) + " - " + positionType + " | Vol: " + DoubleToString(positionVolume, 2) + " | ";
-            positionLabelObjectRisk = "Risk: " + IntegerToString(positionRisk) + "€ (" + NormalizeDouble(positionRiskPercent, 1) + "%) | Reward: " +  IntegerToString(positionReward) + "€  (" + NormalizeDouble(positionRewardPercent, 1) + "%) | RRR: " + NormalizeDouble(positionRRR, 1) + " | ";
-            positionLabelObjectProfit = "Profit: " + positionProfit + "€ (" + IntegerToString(pipProfit) + " Pip)";
-            if(positionRRR < InpMinRRR) positionColor = clrOrange;
-            if(positionRisk > maxPositionRisk) positionColor = clrRed;
-         }
-      }
+//      if((riskLevelBuy == 0 && riskLevelSell == 0) || positionTakeProfit == 0) {
+//         positionLabelObjectFix = positionSymbol + " - " + IntegerToString(positionTicket) + " SL & TP setzen!";
+//         positionColor = clrBlue;
+//      } else {
+//         if(positionRisk < 0) {
+//            positionLabelObjectFix = positionSymbol + " - " + IntegerToString(positionTicket) + " | Position is safe!: " + IntegerToString(positionRisk * -1) + " €";
+//            positionColor = clrGreen;
+//         } else {
+//            positionLabelObjectFix = positionSymbol + " - " + IntegerToString(positionTicket) + " - " + positionType + " | Vol: " + DoubleToString(positionVolume, 2) + " | ";
+//            positionLabelObjectRisk = "Risk: " + IntegerToString(positionRisk) + "€ (" + NormalizeDouble(positionRiskPercent, 1) + "%) | Reward: " +  IntegerToString(positionReward) + "€  (" + NormalizeDouble(positionRewardPercent, 1) + "%) | RRR: " + NormalizeDouble(positionRRR, 1) + " | ";
+//            positionLabelObjectProfit = "Profit: " + positionProfit + "€ (" + IntegerToString(pipProfit) + " Pip)";
+//            if(positionRRR < InpMinRRR) positionColor = clrOrange;
+//            if(positionRisk > maxPositionRisk) positionColor = clrRed;
+//         }
+//      }
 
 //      createLabel(0, objectNamePrefix + IntegerToString(positionTicket), subWindow, xCordPositionFix, yCordTradesPositionsAndOrders, positionLabelObjectFix, fontSize, positionColor);
 //      if(positionLabelObjectRisk != "") createLabel(0, objectNamePrefix + IntegerToString(positionTicket) + "Fix", subWindow, xCordPositionFix + xCordPositionRisk, yCordTradesPositionsAndOrders, positionLabelObjectRisk, fontSize, positionColor);
 //      if(positionLabelObjectProfit != "") createLabel(0, objectNamePrefix + IntegerToString(positionTicket) + "Profit", subWindow, xCordPositionFix + xCordPositionProfit, yCordTradesPositionsAndOrders, positionLabelObjectProfit, fontSize, positionColor);
 //      yCordTradesPositionsAndOrders += rowHigh;
 
-      PositionStruct positionStruct;
-      positionStruct.SymbolString = positionSymbol;
-      positionStruct.Count = 1;
-      positionStruct.Volume = positionVolume;
-      positionStruct.Risk = positionRisk;
-      positionStruct.RiskPercent = positionRiskPercent;
-      positionStruct.Reward = positionReward;
-      positionStruct.RewardPercent = positionRewardPercent;
-      positionStruct.Profit = positionProfit;
-      positionStruct.ProfitPip = pipProfit;
-
-      // Symbols
-      bool symbolFound = false;
-      if(ArraySize(symbolArray) > 0) {
+      if(ArraySize(symbolArray) == 0) {
+         ArrayResize(symbolArray, ArraySize(symbolArray) + 1);
+         symbolArray[ArraySize(symbolArray) - 1] = buildPositionStructForSymbolArray(positionTicket);
+      } else {
+         bool symbolFound = false;
          for(int symbolId = 0; symbolId < ArraySize(symbolArray); symbolId++) {
-            string symbolString = symbolArray[symbolId].SymbolString;
-            if(symbolString == positionSymbol) {
-               symbolArray[symbolId].Count += 1;
-               symbolArray[symbolId].Volume += positionVolume;
-               symbolArray[symbolId].Risk += positionRisk;
-               symbolArray[symbolId].RiskPercent += positionRiskPercent;
-               symbolArray[symbolId].Reward += positionReward;
-               symbolArray[symbolId].RewardPercent += positionRewardPercent;
-               symbolArray[symbolId].Profit += positionProfit;
-               symbolArray[symbolId].ProfitPip += pipProfit;
+            if(PositionSymbol(positionTicket) == symbolArray[symbolId].SymbolString) {
+               if(PositionType(positionTicket) == ORDER_TYPE_BUY) {
+                  symbolArray[symbolId].buyPositionsCount += 1;
+                  symbolArray[symbolId].buyPositionsVolume +=  PositionVolume(positionTicket);
+                  symbolArray[symbolId].buyPositionsLevelVolume +=  PositionVolume(positionTicket) * PositionOpenPrice(positionTicket);
+               }
+               if(PositionType(positionTicket) == ORDER_TYPE_SELL) {
+                  symbolArray[symbolId].sellPositionsCount += 1;
+                  symbolArray[symbolId].sellPositionsVolume += PositionVolume(positionTicket);
+                  symbolArray[symbolId].sellPositionsLevelVolume +=  PositionVolume(positionTicket) * PositionOpenPrice(positionTicket);
+               }
+//               symbolArray[symbolId].Risk += positionRisk;
+//               symbolArray[symbolId].RiskPercent += positionRiskPercent;
+//               symbolArray[symbolId].Reward += positionReward;
+//               symbolArray[symbolId].RewardPercent += positionRewardPercent;
+//               symbolArray[symbolId].Profit += positionProfit;
+//               symbolArray[symbolId].ProfitPip += pipProfit;
 
                symbolFound = true;
+            } else {
             }
          }
-      }
 
-      if(symbolFound == false) {
-         ArrayResize(symbolArray, ArraySize(symbolArray) + 1);
-         symbolArray[ArraySize(symbolArray) - 1] = positionStruct;
-      }
+         if(symbolFound == false) {
+            ArrayResize(symbolArray, ArraySize(symbolArray) + 1);
+            symbolArray[ArraySize(symbolArray) - 1] = buildPositionStructForSymbolArray(positionTicket);
 
-      // Account
-      if(ArraySize(accountArray) > 0) {
-         for(int symbolId = 0; symbolId < ArraySize(accountArray); symbolId++) {
-            accountArray[symbolId].Count += 1;
-            accountArray[symbolId].Volume += positionVolume;
-            accountArray[symbolId].Risk += positionRisk;
-            accountArray[symbolId].RiskPercent += positionRiskPercent;
-            accountArray[symbolId].Reward += positionReward;
-            accountArray[symbolId].RewardPercent += positionRewardPercent;
-            accountArray[symbolId].Profit += positionProfit;
-            accountArray[symbolId].ProfitPip += pipProfit;
          }
-      } else {
-         ArrayResize(accountArray, ArraySize(accountArray) + 1);
-         accountArray[ArraySize(accountArray) - 1] = positionStruct;
+
       }
+
+
+
+//      positionStruct.Risk = positionRisk;
+//      positionStruct.RiskPercent = positionRiskPercent;
+//      positionStruct.Reward = positionReward;
+//      positionStruct.RewardPercent = positionRewardPercent;
+//      positionStruct.Profit = positionProfit;
+//      positionStruct.ProfitPip = pipProfit;
+
+//
+//      // Account
+//      if(ArraySize(accountArray) > 0) {
+//         for(int symbolId = 0; symbolId < ArraySize(accountArray); symbolId++) {
+//            accountArray[symbolId].Count += 1;
+//            accountArray[symbolId].Volume += positionVolume;
+//            accountArray[symbolId].Risk += positionRisk;
+//            accountArray[symbolId].RiskPercent += positionRiskPercent;
+//            accountArray[symbolId].Reward += positionReward;
+//            accountArray[symbolId].RewardPercent += positionRewardPercent;
+//            accountArray[symbolId].Profit += positionProfit;
+//            accountArray[symbolId].ProfitPip += pipProfit;
+//         }
+//      } else {
+//         ArrayResize(accountArray, ArraySize(accountArray) + 1);
+//         accountArray[ArraySize(accountArray) - 1] = positionStruct;
+//      }
    }
 
-   // Symbols
-   for(int index = 0; index < ArraySize(symbolArray); index++) {
-      symbolRRR = (double)symbolArray[index].Reward / (double)symbolArray[index].Risk;
-      string positionSymbolObjectFix = symbolArray[index].SymbolString + " - Count: " + symbolArray[index].Count + " | Vol: " + symbolArray[index].Volume;
-      string positionSymbolObjectRisk = "Risk: " + symbolArray[index].Risk +  "€ (" + NormalizeDouble(symbolArray[index].RiskPercent, 1) +  "%) | Reward: " + symbolArray[index].Reward + "€ (" + NormalizeDouble(symbolArray[index].RewardPercent, 1) +  "%) | RRR: " + NormalizeDouble(symbolRRR, 1);
-      string positionSymbolObjectProfit = "Profit: " + symbolArray[index].Profit +  "€";
+// Symbols
+   Print("---------------------------------");
+   for(int symbolId = 0; symbolId < ArraySize(symbolArray); symbolId++) {
+   double positionsVolumeDiff = symbolArray[symbolId].buyPositionsVolume - symbolArray[symbolId].sellPositionsVolume;
+   double orderVolumeDiff = symbolArray[symbolId].buyOrdersVolume - symbolArray[symbolId].sellOrdersVolume;
+   double volumeDiff = positionsVolumeDiff + orderVolumeDiff;
+   double buyPositionsLevelAverage = symbolArray[symbolId].buyPositionsLevelVolume / symbolArray[symbolId].buyPositionsVolume;
+   double sellPositionsLevelAverage = symbolArray[symbolId].sellPositionsLevelVolume / symbolArray[symbolId].sellPositionsVolume;
+//      symbolRRR = (double)symbolArray[index].Reward / (double)symbolArray[index].Risk;
+//      string positionSymbolObjectFix = symbolArray[index].SymbolString + " - Count: " + symbolArray[index].Count + " | Vol: " + symbolArray[index].Volume;
+//      string positionSymbolObjectRisk = "Risk: " + symbolArray[index].Risk +  "€ (" + NormalizeDouble(symbolArray[index].RiskPercent, 1) +  "%) | Reward: " + symbolArray[index].Reward + "€ (" + NormalizeDouble(symbolArray[index].RewardPercent, 1) +  "%) | RRR: " + NormalizeDouble(symbolRRR, 1);
+//      string positionSymbolObjectProfit = "Profit: " + symbolArray[index].Profit +  "€";
 
-      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString, subWindow, xCordPositionFix, yCordSymbolsPositionsAndOrders, positionSymbolObjectFix, fontSize, positionColor);
-      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString + "Risk", subWindow, xCordPositionRisk, yCordSymbolsPositionsAndOrders, positionSymbolObjectRisk, fontSize, positionColor);
-      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString + "Profit", subWindow, xCordPositionProfit, yCordSymbolsPositionsAndOrders, positionSymbolObjectProfit, fontSize, positionColor);
-      yCordSymbolsPositionsAndOrders += rowHigh;
+//      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString, subWindow, xCordPositionFix, yCordSymbolsPositionsAndOrders, positionSymbolObjectFix, fontSize, positionColor);
+//      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString + "Risk", subWindow, xCordPositionRisk, yCordSymbolsPositionsAndOrders, positionSymbolObjectRisk, fontSize, positionColor);
+//      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString + "Profit", subWindow, xCordPositionProfit, yCordSymbolsPositionsAndOrders, positionSymbolObjectProfit, fontSize, positionColor);
+//      yCordSymbolsPositionsAndOrders += rowHigh;
+     string printString = symbolId + ": " + symbolArray[symbolId].SymbolString + " " ;
+     // Positions
+     printString += symbolArray[symbolId].buyPositionsCount + ": " + symbolArray[symbolId].buyPositionsVolume + " / ";
+     printString += symbolArray[symbolId].sellPositionsCount + ": " + symbolArray[symbolId].sellPositionsVolume;
+     printString += " (" + positionsVolumeDiff + ")";
+
+     printString += " || ";
+     // Orders
+     printString += symbolArray[symbolId].buyOrdersCount + ": " + symbolArray[symbolId].buyOrdersVolume + " / ";
+     printString += symbolArray[symbolId].sellOrdersCount + ": " + symbolArray[symbolId].sellOrdersVolume;
+     printString += " (" + orderVolumeDiff + ")";
+
+     printString += " || ";
+
+     // Summe
+     printString += " (" + volumeDiff + ")";
+
+     printString += " buyPositionsLevelAverage: " + buyPositionsLevelAverage;
+     printString += " sellPositionsLevelAverage: " + sellPositionsLevelAverage;
+     Print(printString);
+
+
+
    }
 
-   // Account
-   for(int index = 0; index < ArraySize(accountArray); index++) {
-      symbolRRR = (double)accountArray[index].Reward / (double)accountArray[index].Risk;
-      string positionSymbolObjectFix = "Count: " + accountArray[index].Count + " | Vol: " + accountArray[index].Volume;
-      string positionSymbolObjectRisk = "Risk: " + accountArray[index].Risk +  "€ (" + NormalizeDouble(accountArray[index].RiskPercent, 1) +  "%) | Reward: " + accountArray[index].Reward + "€ (" + NormalizeDouble(accountArray[index].RewardPercent, 1) +  "%) | RRR: " + NormalizeDouble(symbolRRR, 1);
-      string positionSymbolObjectProfit = "Profit: " + accountArray[index].Profit +  "€";
-
-      createLabel(0, objectNamePrefix + "account", subWindow, xCordPositionFix, yCordAccountPositionsAndOrders, positionSymbolObjectFix, fontSize, positionColor);
-      createLabel(0, objectNamePrefix + "account" + "Risk", subWindow, xCordPositionRisk, yCordAccountPositionsAndOrders, positionSymbolObjectRisk, fontSize, positionColor);
-      createLabel(0, objectNamePrefix + "account" + "Profit", subWindow, xCordPositionProfit, yCordAccountPositionsAndOrders, positionSymbolObjectProfit, fontSize, positionColor);
-      yCordAccountPositionsAndOrders += rowHigh;
-   }
+// Account
+//   for(int index = 0; index < ArraySize(accountArray); index++) {
+//      symbolRRR = (double)accountArray[index].Reward / (double)accountArray[index].Risk;
+//      string positionSymbolObjectFix = "Count: " + accountArray[index].Count + " | Vol: " + accountArray[index].Volume;
+//      string positionSymbolObjectRisk = "Risk: " + accountArray[index].Risk +  "€ (" + NormalizeDouble(accountArray[index].RiskPercent, 1) +  "%) | Reward: " + accountArray[index].Reward + "€ (" + NormalizeDouble(accountArray[index].RewardPercent, 1) +  "%) | RRR: " + NormalizeDouble(symbolRRR, 1);
+//      string positionSymbolObjectProfit = "Profit: " + accountArray[index].Profit +  "€";
+//
+////      createLabel(0, objectNamePrefix + "account", subWindow, xCordPositionFix, yCordAccountPositionsAndOrders, positionSymbolObjectFix, fontSize, positionColor);
+////      createLabel(0, objectNamePrefix + "account" + "Risk", subWindow, xCordPositionRisk, yCordAccountPositionsAndOrders, positionSymbolObjectRisk, fontSize, positionColor);
+////      createLabel(0, objectNamePrefix + "account" + "Profit", subWindow, xCordPositionProfit, yCordAccountPositionsAndOrders, positionSymbolObjectProfit, fontSize, positionColor);
+//      yCordAccountPositionsAndOrders += rowHigh;
+//   }
 
 }
+
+PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
+
+   PositionStruct positionStruct;
+   positionStruct.SymbolString = PositionSymbol(pPositionTicket);
+   positionStruct.buyPositionsCount = 0;
+   positionStruct.buyPositionsLevelVolume = 0;
+   positionStruct.buyPositionsVolume = 0;
+   positionStruct.sellPositionsCount = 0;
+   positionStruct.sellPositionsVolume = 0;
+   positionStruct.sellPositionsLevelVolume = 0;
+   positionStruct.buyOrdersCount = 0;
+   positionStruct.buyOrdersVolume = 0;
+   positionStruct.sellOrdersCount = 0;
+   positionStruct.sellOrdersVolume = 0;
+
+   if(PositionType(pPositionTicket) == ORDER_TYPE_BUY) {
+      positionStruct.buyPositionsCount = 1;
+      positionStruct.buyPositionsVolume = PositionVolume(pPositionTicket);
+      positionStruct.buyPositionsLevelVolume =  PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
+   }
+   if(PositionType(pPositionTicket) == ORDER_TYPE_SELL) {
+      positionStruct.sellPositionsCount = 1;
+      positionStruct.sellPositionsVolume = PositionVolume(pPositionTicket);
+      positionStruct.sellPositionsLevelVolume =  PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
+   }
+
+   long pendingTickets[];
+   Pending.GetTickets(PositionSymbol(pPositionTicket), pendingTickets);
+   for(int pendingTicketsId = 0; pendingTicketsId < ArraySize(pendingTickets); pendingTicketsId++) {
+      long pendingTicket = pendingTickets[pendingTicketsId];
+      if(pendingTicket > 0) {
+         if(OrderType(pendingTicket) == ORDER_TYPE_BUY_STOP) {
+            positionStruct.buyOrdersCount += 1;
+            positionStruct.buyOrdersVolume += OrderVolume(pendingTicket);
+         }
+         if(OrderType(pendingTicket) == ORDER_TYPE_SELL_STOP) {
+            positionStruct.sellOrdersCount += 1;
+            positionStruct.sellOrdersVolume += OrderVolume(pendingTicket);
+         }
+      }
+   }
+
+   return positionStruct;
+
+}
+
+
 
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
-long getChartIDBySymbol(string pSymbol) {
-   long prevChartID = ChartFirst();
-   do {
-      if(ChartSymbol(prevChartID) == pSymbol) return prevChartID;
-      prevChartID = ChartNext(prevChartID);
-   } while(prevChartID != -1);
+//long getChartIDBySymbol(string pSymbol) {
+//   long prevChartID = ChartFirst();
+//   do {
+//      if(ChartSymbol(prevChartID) == pSymbol) return prevChartID;
+//      prevChartID = ChartNext(prevChartID);
+//   } while(prevChartID != -1);
+//
+//   return -1;
+//
+//}
 
-   return -1;
+//double getRiskLevelBuy(const double pPositionStopLoss, const double pHLineLevel, const double pTrendLineLevel) {
+//
+//   double riskLevel = 0;
+//
+//   // pPositionStopLoss > 0
+//   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
+//      riskLevel = MathMax(pHLineLevel, pTrendLineLevel);
+//      riskLevel = MathMax(riskLevel, pPositionStopLoss);
+//   }
+//   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
+//      riskLevel = MathMax(pPositionStopLoss, pHLineLevel);
+//   }
+//   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
+//      riskLevel = MathMax(pPositionStopLoss, pTrendLineLevel);
+//   }
+//   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
+//      riskLevel = pPositionStopLoss;
+//   }
+//
+//   // pPositionStopLoss == 0
+//   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
+//      riskLevel = MathMax(pHLineLevel, pTrendLineLevel);
+//   }
+//   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
+//      riskLevel = pTrendLineLevel;
+//   }
+//   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
+//      riskLevel = pHLineLevel;
+//   }
+//   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
+//      riskLevel = 0;
+//   }
+//
+//   return riskLevel;
+//}
 
-}
-
-double getRiskLevelBuy(const double pPositionStopLoss, const double pHLineLevel, const double pTrendLineLevel) {
-
-   double riskLevel = 0;
-
-   // pPositionStopLoss > 0
-   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
-      riskLevel = MathMax(pHLineLevel, pTrendLineLevel);
-      riskLevel = MathMax(riskLevel, pPositionStopLoss);
-   }
-   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
-      riskLevel = MathMax(pPositionStopLoss, pHLineLevel);
-   }
-   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
-      riskLevel = MathMax(pPositionStopLoss, pTrendLineLevel);
-   }
-   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
-      riskLevel = pPositionStopLoss;
-   }
-
-   // pPositionStopLoss == 0
-   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
-      riskLevel = MathMax(pHLineLevel, pTrendLineLevel);
-   }
-   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
-      riskLevel = pTrendLineLevel;
-   }
-   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
-      riskLevel = pHLineLevel;
-   }
-   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
-      riskLevel = 0;
-   }
-
-   return riskLevel;
-}
-
-double getRiskLevelSell(const double pPositionStopLoss, const double pHLineLevel, const double pTrendLineLevel) {
-
-   double riskLevel = 0;
-
-   // pPositionStopLoss > 0
-   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
-      riskLevel = MathMin(pHLineLevel, pTrendLineLevel);
-      riskLevel = MathMin(riskLevel, pPositionStopLoss);
-   }
-   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
-      riskLevel = MathMin(pPositionStopLoss, pHLineLevel);
-   }
-   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
-      riskLevel = MathMin(pPositionStopLoss, pTrendLineLevel);
-   }
-   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
-      riskLevel = pPositionStopLoss;
-   }
-
-   // pPositionStopLoss == 0
-   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
-      riskLevel = MathMin(pHLineLevel, pTrendLineLevel);
-   }
-   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
-      riskLevel = pTrendLineLevel;
-   }
-   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
-      riskLevel = pHLineLevel;
-   }
-   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
-      riskLevel = 0;
-   }
-
-   return riskLevel;
-}
+//double getRiskLevelSell(const double pPositionStopLoss, const double pHLineLevel, const double pTrendLineLevel) {
+//
+//   double riskLevel = 0;
+//
+//   // pPositionStopLoss > 0
+//   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
+//      riskLevel = MathMin(pHLineLevel, pTrendLineLevel);
+//      riskLevel = MathMin(riskLevel, pPositionStopLoss);
+//   }
+//   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
+//      riskLevel = MathMin(pPositionStopLoss, pHLineLevel);
+//   }
+//   if(pPositionStopLoss > 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
+//      riskLevel = MathMin(pPositionStopLoss, pTrendLineLevel);
+//   }
+//   if(pPositionStopLoss > 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
+//      riskLevel = pPositionStopLoss;
+//   }
+//
+//   // pPositionStopLoss == 0
+//   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel > 0) {
+//      riskLevel = MathMin(pHLineLevel, pTrendLineLevel);
+//   }
+//   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel > 0) {
+//      riskLevel = pTrendLineLevel;
+//   }
+//   if(pPositionStopLoss == 0 && pHLineLevel > 0 && pTrendLineLevel == 0) {
+//      riskLevel = pHLineLevel;
+//   }
+//   if(pPositionStopLoss == 0 && pHLineLevel == 0 && pTrendLineLevel == 0) {
+//      riskLevel = 0;
+//   }
+//
+//   return riskLevel;
+//}
 //+------------------------------------------------------------------+
 //|                                                                  |
 //+------------------------------------------------------------------+
@@ -484,20 +586,20 @@ void deleteObjects() {
 }
 //+------------------------------------------------------------------+
 
-double getPipValueBySymbol(string pPositionSymbol) {
-
-   double pipValue = 0;
-   string symbolAgainst = StringSubstr(pPositionSymbol, 3, 3);
-
-   if(symbolAgainst == "AUD") pipValue =  10 / SymbolInfoDouble("EURAUD", SYMBOL_BID);
-   if(symbolAgainst == "CAD") pipValue =  10 / SymbolInfoDouble("EURCAD", SYMBOL_BID);
-   if(symbolAgainst == "CHF") pipValue =  10 / SymbolInfoDouble("EURCHF", SYMBOL_BID);
-   if(symbolAgainst == "GBP") pipValue =  10 / SymbolInfoDouble("EURGBP", SYMBOL_BID);
-   if(symbolAgainst == "JPY") pipValue =  1000 / SymbolInfoDouble("EURJPY", SYMBOL_BID);
-   if(symbolAgainst == "NZD") pipValue =  10 / SymbolInfoDouble("EURNZD", SYMBOL_BID);
-   if(symbolAgainst == "USD") pipValue =  10 / SymbolInfoDouble("EURUSD", SYMBOL_BID);
-
-   return pipValue;
-
-}
+//double getPipValueBySymbol(string pPositionSymbol) {
+//
+//   double pipValue = 0;
+//   string symbolAgainst = StringSubstr(pPositionSymbol, 3, 3);
+//
+//   if(symbolAgainst == "AUD") pipValue =  10 / SymbolInfoDouble("EURAUD", SYMBOL_BID);
+//   if(symbolAgainst == "CAD") pipValue =  10 / SymbolInfoDouble("EURCAD", SYMBOL_BID);
+//   if(symbolAgainst == "CHF") pipValue =  10 / SymbolInfoDouble("EURCHF", SYMBOL_BID);
+//   if(symbolAgainst == "GBP") pipValue =  10 / SymbolInfoDouble("EURGBP", SYMBOL_BID);
+//   if(symbolAgainst == "JPY") pipValue =  1000 / SymbolInfoDouble("EURJPY", SYMBOL_BID);
+//   if(symbolAgainst == "NZD") pipValue =  10 / SymbolInfoDouble("EURNZD", SYMBOL_BID);
+//   if(symbolAgainst == "USD") pipValue =  10 / SymbolInfoDouble("EURUSD", SYMBOL_BID);
+//
+//   return pipValue;
+//
+//}
 //+------------------------------------------------------------------+
