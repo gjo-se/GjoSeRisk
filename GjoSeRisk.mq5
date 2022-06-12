@@ -12,6 +12,7 @@
    1.0.0    Initial version
    1.4      added GBP
    1.4.1    delete Print
+   1.5.0    new Version auf RiskCalc inkl. Hedges
 
    ===============
 
@@ -23,7 +24,7 @@
 #property   copyright   "2022, GjoSe"
 #property   link        "http://www.gjo-se.com"
 #property   description "GjoSe Risk Management"
-#define     VERSION "1.4.1"
+#define     VERSION "1.5.0"
 #property   version VERSION
 #property   strict
 
