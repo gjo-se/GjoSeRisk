@@ -40,15 +40,15 @@ input double InpMaxAccountRiskPercent = 10;
 input double InpMaxPositionRiskPercent = 50;
 input double InpMinRRR = 2;
 
-input double InpPipValueCADJPY = 7.60;
-input double InpPipValueCHFJPY = 7.60;
-input double InpPipValueEURJPY = 7.60;
-input double InpPipValueEURUSD = 8.60;
-input double InpPipValueGBPAUD = 7.60;
-input double InpPipValueGBPJPY = 7.60;
-input double InpPipValueGBPUSD = 8.60;
-input double InpPipValueUSDJPY = 7.60;
-input double InpPipValueXAUUSD = 8.60;
+//input double InpPipValueCADJPY = 7.60;
+//input double InpPipValueCHFJPY = 7.60;
+//input double InpPipValueEURJPY = 7.60;
+//input double InpPipValueEURUSD = 8.60;
+//input double InpPipValueGBPAUD = 7.60;
+//input double InpPipValueGBPJPY = 7.60;
+//input double InpPipValueGBPUSD = 8.60;
+//input double InpPipValueUSDJPY = 7.60;
+//input double InpPipValueXAUUSD = 8.60;
 
 string objectNamePrefix = "GjoSeRisk_";
 CPositions  Positions;
@@ -65,16 +65,24 @@ struct PositionStruct {
    int               buyPositionsCount;
    double            buyPositionsVolume;
    double            buyPositionsLevelVolume;
+   double            buyOrdersLevelVolumeArray[][2];
+   double            buyPositionsProfit;
+
    int               sellPositionsCount;
    double            sellPositionsVolume;
    double            sellPositionsLevelVolume;
+   double            sellOrdersLevelVolumeArray[][2];
+   double            sellPositionsProfit;
+
    int               buyOrdersCount;
    double            buyOrdersVolume;
    int               sellOrdersCount;
    double            sellOrdersVolume;
 
-//   int      Risk;
-//   double   RiskPercent;
+   double            symbolLossRiskValue;
+   double            symbolTotalRiskValue;
+//   double            symbolRiskPercent;
+
 //   int      Reward;
 //   double   RewardPercent;
 //   double   RRR;
@@ -316,11 +324,29 @@ void calculateRisk() {
                   symbolArray[symbolId].buyPositionsCount += 1;
                   symbolArray[symbolId].buyPositionsVolume +=  PositionVolume(positionTicket);
                   symbolArray[symbolId].buyPositionsLevelVolume +=  PositionVolume(positionTicket) * PositionOpenPrice(positionTicket);
+                  symbolArray[symbolId].buyPositionsProfit +=  PositionProfit(positionTicket);
+
+                  if(PositionStopLoss(positionTicket) != 0) {
+                     ArrayResize(symbolArray[symbolId].sellOrdersLevelVolumeArray, ArrayRange(symbolArray[symbolId].sellOrdersLevelVolumeArray, 0) + 1);
+                     symbolArray[symbolId].sellOrdersLevelVolumeArray[ArrayRange(symbolArray[symbolId].sellOrdersLevelVolumeArray, 0) - 1][0] = PositionStopLoss(positionTicket);
+                     symbolArray[symbolId].sellOrdersLevelVolumeArray[ArrayRange(symbolArray[symbolId].sellOrdersLevelVolumeArray, 0) - 1][1] = PositionVolume(positionTicket);
+                     symbolArray[symbolId].sellOrdersCount += 1;
+                     symbolArray[symbolId].sellOrdersVolume += PositionVolume(positionTicket);
+                  }
                }
                if(PositionType(positionTicket) == ORDER_TYPE_SELL) {
                   symbolArray[symbolId].sellPositionsCount += 1;
                   symbolArray[symbolId].sellPositionsVolume += PositionVolume(positionTicket);
-                  symbolArray[symbolId].sellPositionsLevelVolume +=  PositionVolume(positionTicket) * PositionOpenPrice(positionTicket);
+                  symbolArray[symbolId].sellPositionsLevelVolume += PositionVolume(positionTicket) * PositionOpenPrice(positionTicket);
+                  symbolArray[symbolId].sellPositionsProfit += PositionProfit(positionTicket);
+
+                  if(PositionStopLoss(positionTicket) != 0) {
+                     ArrayResize(symbolArray[symbolId].buyOrdersLevelVolumeArray, ArrayRange(symbolArray[symbolId].buyOrdersLevelVolumeArray, 0) + 1);
+                     symbolArray[symbolId].buyOrdersLevelVolumeArray[ArrayRange(symbolArray[symbolId].buyOrdersLevelVolumeArray, 0) - 1][0] = PositionStopLoss(positionTicket);
+                     symbolArray[symbolId].buyOrdersLevelVolumeArray[ArrayRange(symbolArray[symbolId].buyOrdersLevelVolumeArray, 0) - 1][1] = PositionVolume(positionTicket);
+                     symbolArray[symbolId].buyOrdersCount += 1;
+                     symbolArray[symbolId].buyOrdersVolume += PositionVolume(positionTicket);
+                  }
                }
 //               symbolArray[symbolId].Risk += positionRisk;
 //               symbolArray[symbolId].RiskPercent += positionRiskPercent;
@@ -337,7 +363,6 @@ void calculateRisk() {
          if(symbolFound == false) {
             ArrayResize(symbolArray, ArraySize(symbolArray) + 1);
             symbolArray[ArraySize(symbolArray) - 1] = buildPositionStructForSymbolArray(positionTicket);
-
          }
 
       }
@@ -373,11 +398,18 @@ void calculateRisk() {
 // Symbols
    Print("---------------------------------");
    for(int symbolId = 0; symbolId < ArraySize(symbolArray); symbolId++) {
-   double positionsVolumeDiff = symbolArray[symbolId].buyPositionsVolume - symbolArray[symbolId].sellPositionsVolume;
-   double orderVolumeDiff = symbolArray[symbolId].buyOrdersVolume - symbolArray[symbolId].sellOrdersVolume;
-   double volumeDiff = positionsVolumeDiff + orderVolumeDiff;
-   double buyPositionsLevelAverage = symbolArray[symbolId].buyPositionsLevelVolume / symbolArray[symbolId].buyPositionsVolume;
-   double sellPositionsLevelAverage = symbolArray[symbolId].sellPositionsLevelVolume / symbolArray[symbolId].sellPositionsVolume;
+      double positionsVolumeDiff = symbolArray[symbolId].buyPositionsVolume - symbolArray[symbolId].sellPositionsVolume;
+      double orderVolumeDiff = symbolArray[symbolId].buyOrdersVolume - symbolArray[symbolId].sellOrdersVolume;
+      double volumeDiff = positionsVolumeDiff + orderVolumeDiff;
+      double buyPositionsLevelAverage = symbolArray[symbolId].buyPositionsLevelVolume / symbolArray[symbolId].buyPositionsVolume;
+      double sellPositionsLevelAverage = symbolArray[symbolId].sellPositionsLevelVolume / symbolArray[symbolId].sellPositionsVolume;
+      double buyPositionsProfit = symbolArray[symbolId].buyPositionsProfit;
+      double sellPositionsProfit = symbolArray[symbolId].sellPositionsProfit;
+      double buyOrdersLevelVolumeSortedArray[][2];
+      double sellOrdersLevelVolumeSortedArray[][2];
+      ArraySort2D(symbolArray[symbolId].buyOrdersLevelVolumeArray, buyOrdersLevelVolumeSortedArray, 0);
+      ArraySort2D(symbolArray[symbolId].sellOrdersLevelVolumeArray, sellOrdersLevelVolumeSortedArray, 0, SORT_DESC);
+
 //      symbolRRR = (double)symbolArray[index].Reward / (double)symbolArray[index].Risk;
 //      string positionSymbolObjectFix = symbolArray[index].SymbolString + " - Count: " + symbolArray[index].Count + " | Vol: " + symbolArray[index].Volume;
 //      string positionSymbolObjectRisk = "Risk: " + symbolArray[index].Risk +  "€ (" + NormalizeDouble(symbolArray[index].RiskPercent, 1) +  "%) | Reward: " + symbolArray[index].Reward + "€ (" + NormalizeDouble(symbolArray[index].RewardPercent, 1) +  "%) | RRR: " + NormalizeDouble(symbolRRR, 1);
@@ -387,26 +419,92 @@ void calculateRisk() {
 //      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString + "Risk", subWindow, xCordPositionRisk, yCordSymbolsPositionsAndOrders, positionSymbolObjectRisk, fontSize, positionColor);
 //      createLabel(0, objectNamePrefix + symbolArray[index].SymbolString + "Profit", subWindow, xCordPositionProfit, yCordSymbolsPositionsAndOrders, positionSymbolObjectProfit, fontSize, positionColor);
 //      yCordSymbolsPositionsAndOrders += rowHigh;
-     string printString = symbolId + ": " + symbolArray[symbolId].SymbolString + " " ;
-     // Positions
-     printString += symbolArray[symbolId].buyPositionsCount + ": " + symbolArray[symbolId].buyPositionsVolume + " / ";
-     printString += symbolArray[symbolId].sellPositionsCount + ": " + symbolArray[symbolId].sellPositionsVolume;
-     printString += " (" + positionsVolumeDiff + ")";
+      string printString = symbolId + ": " + symbolArray[symbolId].SymbolString + " " ;
+      // Positions
+      printString += symbolArray[symbolId].buyPositionsCount + ": " + symbolArray[symbolId].buyPositionsVolume + " / ";
+      printString += symbolArray[symbolId].sellPositionsCount + ": " + symbolArray[symbolId].sellPositionsVolume;
+      printString += " (" + positionsVolumeDiff + ")";
 
-     printString += " || ";
-     // Orders
-     printString += symbolArray[symbolId].buyOrdersCount + ": " + symbolArray[symbolId].buyOrdersVolume + " / ";
-     printString += symbolArray[symbolId].sellOrdersCount + ": " + symbolArray[symbolId].sellOrdersVolume;
-     printString += " (" + orderVolumeDiff + ")";
+      printString += " || ";
+      // Orders
+      printString += symbolArray[symbolId].buyOrdersCount + ": " + symbolArray[symbolId].buyOrdersVolume + " / ";
+      printString += symbolArray[symbolId].sellOrdersCount + ": " + symbolArray[symbolId].sellOrdersVolume;
+      printString += " (" + orderVolumeDiff + ")";
 
-     printString += " || ";
+      printString += " || ";
 
-     // Summe
-     printString += " (" + volumeDiff + ")";
+      // Summe
+      printString += " (" + volumeDiff + ")";
 
-     printString += " buyPositionsLevelAverage: " + buyPositionsLevelAverage;
-     printString += " sellPositionsLevelAverage: " + sellPositionsLevelAverage;
-     Print(printString);
+      printString += " buyPositionsLevelAverage: " + DoubleToString(buyPositionsLevelAverage, 2);
+      printString += " sellPositionsLevelAverage: " + DoubleToString(sellPositionsLevelAverage, 2);
+
+      printString += " buyPositionsProfit: " + DoubleToString(buyPositionsProfit, 2);
+      printString += " sellPositionsProfit: " + DoubleToString(sellPositionsProfit, 2);
+
+
+      ArrayPrint(buyOrdersLevelVolumeSortedArray);
+      ArrayPrint(sellOrdersLevelVolumeSortedArray);
+
+      // Risk LONG POS
+      if(positionsVolumeDiff > 0) {
+         double positionsVolumeDiffLocal = positionsVolumeDiff;
+         if(ArrayRange(sellOrdersLevelVolumeSortedArray, 0) > 0) {
+            for(int sellOrderLevelVolumeId = 0; sellOrderLevelVolumeId < ArrayRange(sellOrdersLevelVolumeSortedArray, 0); sellOrderLevelVolumeId++) {
+
+               if(positionsVolumeDiffLocal > 0) {
+                  double sellOrderLevel = sellOrdersLevelVolumeSortedArray[sellOrderLevelVolumeId][0];
+                  double sellOrderVolume = sellOrdersLevelVolumeSortedArray[sellOrderLevelVolumeId][1];
+                  double positionRiskVolume = MathMin(sellOrderVolume, positionsVolumeDiff);
+                  double positionRiskPoints = buyPositionsLevelAverage / Point() - sellOrderLevel / Point();
+                  double positionRiskValue = sellOrderVolume * positionRiskPoints * getPointValueBySymbol(symbolArray[symbolId].SymbolString);
+                  symbolArray[symbolId].symbolLossRiskValue += positionRiskValue;
+                  symbolArray[symbolId].symbolLossRiskValue = MathMin(AccountInfoDouble(ACCOUNT_EQUITY), symbolArray[symbolId].symbolLossRiskValue);
+                  symbolArray[symbolId].symbolTotalRiskValue = symbolArray[symbolId].symbolLossRiskValue + buyPositionsProfit + sellPositionsProfit;
+                  positionsVolumeDiffLocal -= sellOrderVolume;
+
+                  Print("StartVolume: " + MathAbs(positionsVolumeDiff) + " buyPositionsLevelAverage: " + DoubleToString(buyPositionsLevelAverage, Digits()) + " sellOrderLevel: " + DoubleToString(sellOrderLevel, Digits()) + " Volume: " + sellOrderVolume + " positionRiskPoints: " + DoubleToString(positionRiskPoints, 0) + " positionRiskValue: " + DoubleToString(positionRiskValue, 0) + " symbolLossRiskValue: " + DoubleToString(symbolArray[symbolId].symbolLossRiskValue, 0) + " symbolTotalRiskValue: " + DoubleToString(symbolArray[symbolId].symbolTotalRiskValue, 0) + " RestVol: " + DoubleToString(positionsVolumeDiffLocal, 2));
+
+               }
+            }
+         }
+
+         if(positionsVolumeDiffLocal > 0) {
+             symbolArray[symbolId].symbolLossRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
+             Print("Buy Volume nicht abgesichrt: " + " symbolLossRiskValue: " + DoubleToString(symbolArray[symbolId].symbolLossRiskValue, 0) + " RestVol: " + DoubleToString(positionsVolumeDiffLocal, 2));
+         }
+      }
+
+      // Risk SHORT POS
+      if(positionsVolumeDiff < 0) {
+         double positionsVolumeDiffLocal = MathAbs(positionsVolumeDiff);
+         if(ArrayRange(buyOrdersLevelVolumeSortedArray, 0) > 0) {
+            for(int buyOrderLevelVolumeId = 0; buyOrderLevelVolumeId < ArrayRange(buyOrdersLevelVolumeSortedArray, 0); buyOrderLevelVolumeId++) {
+
+               if(positionsVolumeDiffLocal > 0) {
+                  double buyOrderLevel = buyOrdersLevelVolumeSortedArray[buyOrderLevelVolumeId][0];
+                  double buyOrderVolume = buyOrdersLevelVolumeSortedArray[buyOrderLevelVolumeId][1];
+                  double positionRiskVolume = MathMin(buyOrderVolume, positionsVolumeDiffLocal);
+                  double positionRiskPoints = buyOrderLevel / Point() - sellPositionsLevelAverage / Point();
+                  double positionRiskValue = buyOrderVolume * positionRiskPoints * getPointValueBySymbol(symbolArray[symbolId].SymbolString);
+                  symbolArray[symbolId].symbolLossRiskValue += positionRiskValue;
+                  symbolArray[symbolId].symbolLossRiskValue = MathMin(AccountInfoDouble(ACCOUNT_EQUITY), symbolArray[symbolId].symbolLossRiskValue);
+                  symbolArray[symbolId].symbolTotalRiskValue = symbolArray[symbolId].symbolLossRiskValue + buyPositionsProfit + sellPositionsProfit;
+                  positionsVolumeDiffLocal -= buyOrderVolume;
+
+                  Print("StartVolume: " + MathAbs(positionsVolumeDiff) + " sellPositionsLevelAverage: " + DoubleToString(sellPositionsLevelAverage, Digits()) + " buyOrderLevel: " + DoubleToString(buyOrderLevel, Digits()) + " Volume: " + buyOrderVolume + " positionRiskPoints: " + DoubleToString(positionRiskPoints, 0) + " positionRiskValue: " + DoubleToString(positionRiskValue, 0) + " symbolRiskValue: " + DoubleToString(symbolArray[symbolId].symbolLossRiskValue, 0)+ " symbolTotalRiskValue: " + DoubleToString(symbolArray[symbolId].symbolTotalRiskValue, 0) + " RestVol: " + DoubleToString(positionsVolumeDiffLocal, 2));
+
+               }
+            }
+         }
+
+         if(positionsVolumeDiffLocal > 0) {
+             symbolArray[symbolId].symbolLossRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
+             Print("Sell Volume nicht abgesichrt: " + " symbolLossRiskValue: " + DoubleToString(symbolArray[symbolId].symbolLossRiskValue, 0) + " RestVol: " + DoubleToString(positionsVolumeDiffLocal, 2));
+         }
+      }
+
+      Print(printString);
 
 
 
@@ -427,30 +525,63 @@ void calculateRisk() {
 
 }
 
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+double getPointValueBySymbol(string pPositionSymbol) {
+   return SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_VALUE) / SymbolInfoDouble(Symbol(), SYMBOL_TRADE_TICK_SIZE) * Point();
+}
+
 PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
 
    PositionStruct positionStruct;
    positionStruct.SymbolString = PositionSymbol(pPositionTicket);
+
    positionStruct.buyPositionsCount = 0;
    positionStruct.buyPositionsLevelVolume = 0;
    positionStruct.buyPositionsVolume = 0;
+   ArrayResize(positionStruct.buyOrdersLevelVolumeArray, 0);
+   positionStruct.buyPositionsProfit = 0;
+
    positionStruct.sellPositionsCount = 0;
    positionStruct.sellPositionsVolume = 0;
    positionStruct.sellPositionsLevelVolume = 0;
+   ArrayResize(positionStruct.sellOrdersLevelVolumeArray, 0);
+   positionStruct.sellPositionsProfit = 0;
+
    positionStruct.buyOrdersCount = 0;
    positionStruct.buyOrdersVolume = 0;
    positionStruct.sellOrdersCount = 0;
    positionStruct.sellOrdersVolume = 0;
 
+   positionStruct.symbolLossRiskValue = 0;
+   positionStruct.symbolTotalRiskValue = 0;
+
    if(PositionType(pPositionTicket) == ORDER_TYPE_BUY) {
       positionStruct.buyPositionsCount = 1;
       positionStruct.buyPositionsVolume = PositionVolume(pPositionTicket);
       positionStruct.buyPositionsLevelVolume =  PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
-   }
+      positionStruct.buyPositionsProfit =  PositionProfit(pPositionTicket);
+      if(PositionStopLoss(pPositionTicket) != 0) {
+         ArrayResize(positionStruct.sellOrdersLevelVolumeArray, ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) + 1);
+         positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][0] = PositionStopLoss(pPositionTicket);
+         positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][1] = PositionVolume(pPositionTicket);
+         positionStruct.sellOrdersCount += 1;
+         positionStruct.sellOrdersVolume += PositionVolume(pPositionTicket);
+      }
+    }
    if(PositionType(pPositionTicket) == ORDER_TYPE_SELL) {
       positionStruct.sellPositionsCount = 1;
       positionStruct.sellPositionsVolume = PositionVolume(pPositionTicket);
-      positionStruct.sellPositionsLevelVolume =  PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
+      positionStruct.sellPositionsLevelVolume = PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
+      positionStruct.sellPositionsProfit = PositionProfit(pPositionTicket);
+      if(PositionStopLoss(pPositionTicket) != 0) {
+         ArrayResize(positionStruct.buyOrdersLevelVolumeArray, ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) + 1);
+         positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][0] = PositionStopLoss(pPositionTicket);
+         positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][1] = PositionVolume(pPositionTicket);
+         positionStruct.buyOrdersCount += 1;
+         positionStruct.buyOrdersVolume += PositionVolume(pPositionTicket);
+      }
    }
 
    long pendingTickets[];
@@ -461,10 +592,18 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
          if(OrderType(pendingTicket) == ORDER_TYPE_BUY_STOP) {
             positionStruct.buyOrdersCount += 1;
             positionStruct.buyOrdersVolume += OrderVolume(pendingTicket);
+
+            ArrayResize(positionStruct.buyOrdersLevelVolumeArray, ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) + 1);
+            positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][0] = OrderOpenPrice(pendingTicket);
+            positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][1] = OrderVolume(pendingTicket);
          }
          if(OrderType(pendingTicket) == ORDER_TYPE_SELL_STOP) {
             positionStruct.sellOrdersCount += 1;
             positionStruct.sellOrdersVolume += OrderVolume(pendingTicket);
+
+            ArrayResize(positionStruct.sellOrdersLevelVolumeArray, ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) + 1);
+             positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][0] = OrderOpenPrice(pendingTicket);
+             positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][1] = OrderVolume(pendingTicket);
          }
       }
    }
@@ -473,6 +612,39 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
 
 }
 
+const int SORT_ASC = 0;
+const int SORT_DESC = 1;
+
+void ArraySort2D(double &pSourceArray[][], double &pDestinationArray[][], const int pIndexToSort, const int pSortDirection = 0) {
+
+   int liSize[2];
+   liSize[0] = ArrayRange(pSourceArray, 0);
+   liSize[1] = ArrayRange(pSourceArray, 1);
+   int liPosition;
+
+   for (int i = 0; i < liSize[0]; i++) {
+
+      if(pSortDirection == SORT_ASC) {
+         liPosition = 0;
+         for (int j = 0; j < liSize[0]; j++) {
+            if (pSourceArray[i][pIndexToSort] > pSourceArray[j][pIndexToSort]) {
+               liPosition++;
+            }
+         }
+         ArrayCopy(pDestinationArray, pSourceArray, liPosition * liSize[1], i * liSize[1],  liSize[1]);
+      }
+
+      if(pSortDirection == SORT_DESC) {
+         liPosition = liSize[0] - 1;
+         for (int j = 0; j < liSize[0]; j++) {
+            if (pSourceArray[i][pIndexToSort] > pSourceArray[j][pIndexToSort]) {
+               liPosition--;
+            }
+         }
+         ArrayCopy(pDestinationArray, pSourceArray, liPosition * liSize[1], i * liSize[1],  liSize[1]);
+      }
+   }
+}
 
 
 //+------------------------------------------------------------------+
