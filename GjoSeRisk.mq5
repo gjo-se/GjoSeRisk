@@ -13,6 +13,7 @@
    1.4      added GBP
    1.4.1    delete Print
    1.5.0    new Version auf RiskCalc inkl. Hedges
+   1.5.1    fixed Positions and Orders Count & Volume
 
    ===============
 
@@ -24,7 +25,7 @@
 #property   copyright   "2022, GjoSe"
 #property   link        "http://www.gjo-se.com"
 #property   description "GjoSe Risk Management"
-#define     VERSION "1.5.0"
+#define     VERSION "1.5.1"
 #property   version VERSION
 #property   strict
 
@@ -77,6 +78,7 @@ struct PositionStruct {
 //   double   RRR;
 };
 
+int symbolsCount;
 PositionStruct symbolArray[];
 //PositionStruct accountArray[];
 
@@ -85,7 +87,7 @@ PositionStruct symbolArray[];
 //+------------------------------------------------------------------+
 int OnInit() {
 
-   deleteObjects();
+   deleteLabelLike(objectNamePrefix);
    calculateRisk();
 
    IndicatorSetString(INDICATOR_SHORTNAME, MY_INDICATOR_SHORTNAME);
@@ -106,7 +108,7 @@ int OnCalculate(const int pRatesTotal,
                 const long &volume[],
                 const int &spread[]) {
 
-   deleteObjects();
+   deleteLabelLike(objectNamePrefix);
    calculateRisk();
 
    return(pRatesTotal);
@@ -140,12 +142,9 @@ void calculateRisk() {
    int  labelSubWindow = subWindow;
 
    int xCordHeadline = 500;
-   int xCordSymbolString = 20;
-   int xCordSymbolPositionsAndOrders = 100;
-   int xCordSymbolRisk = 450;
-   int xCordSymbolProfit = 720;
 
-   int rowHigh = 18;
+
+   int rowHigh = 22;
    int yCordPositionsAndOrdersOffsetHeadline = 30;
 
    int yCordAccountHeadline = 50;
@@ -160,7 +159,7 @@ void calculateRisk() {
 //   createLabel(0, objectNamePrefix + "AccountHeadline", subWindow, xCordHeadline, yCordAccountHeadline, "Account", headLineFontSize);
 
    //createSymbolsHeadline
-   createLabel(objectNamePrefix + "SymbolsHeadline", xCordHeadline, yCordSymbolsHeadline, "Symbols", headLineFontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+   createLabel(objectNamePrefix + "SymbolsHeadline", xCordHeadline, yCordSymbolsHeadline, "Symbols ("+ IntegerToString(symbolsCount) + ")", headLineFontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
 
    // Positions
    long  positionTickets[];
@@ -235,7 +234,9 @@ void calculateRisk() {
    }
 
 // Symbols
+   symbolsCount = 0;
    for(int symbolId = 0; symbolId < ArraySize(symbolArray); symbolId++) {
+      symbolsCount++;
       double positionsVolumeDiff = symbolArray[symbolId].buyPositionsVolume - symbolArray[symbolId].sellPositionsVolume;
       double orderVolumeDiff = symbolArray[symbolId].buyOrdersVolume - symbolArray[symbolId].sellOrdersVolume;
       double volumeDiff = positionsVolumeDiff + orderVolumeDiff;
@@ -330,31 +331,84 @@ void calculateRisk() {
 
 //      Print(printString);
 
-      // Label SymbolString
+   int xCordSymbolString = 20;
+   int xCordSymbolPositionsAndOrders = 100;
+   int xCordSymbolRisk = 450;
+   int xCordSymbolProfit = 720;
+
       string themeDivider = " || ";
+
+      // Label SymbolString
       string symbolStringLabelText = symbolArray[symbolId].SymbolString + " ";
       createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString, xCordSymbolString, yCordSymbolsPositionsAndOrders, symbolStringLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
 
-      // Label SymbolPositionsAndOrders
-      string symbolPositionsLabelText = IntegerToString(symbolArray[symbolId].buyPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].buyPositionsVolume, 2) + " / ";
-      symbolPositionsLabelText += IntegerToString(symbolArray[symbolId].sellPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].sellPositionsVolume, 2);
-      symbolPositionsLabelText += " (" + DoubleToString(positionsVolumeDiff, 2) + ")";
-      string symbolOrdersLabelText = IntegerToString(symbolArray[symbolId].buyOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].buyOrdersVolume, 2) + " / ";
-      symbolOrdersLabelText += IntegerToString(symbolArray[symbolId].sellOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].sellOrdersVolume, 2);
-      symbolOrdersLabelText += " (" + DoubleToString(orderVolumeDiff, 2) + ")";
-      string symbolPositionsAndOrdersLabelText = IntegerToString(symbolArray[symbolId].buyPositionsCount + symbolArray[symbolId].sellPositionsCount + symbolArray[symbolId].buyOrdersCount + symbolArray[symbolId].sellOrdersCount) + ": ";
-      symbolPositionsAndOrdersLabelText += " (" + DoubleToString(volumeDiff, 2) + ")";
-      string symbolPositionAndOrdersLabel = symbolPositionsLabelText + themeDivider + symbolOrdersLabelText + themeDivider + symbolPositionsAndOrdersLabelText;
-      createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolPositionAndOrdersLabel", xCordSymbolPositionsAndOrders, yCordSymbolsPositionsAndOrders, symbolPositionAndOrdersLabel, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      // Label BuyPositions
+      if(symbolArray[symbolId].buyPositionsCount > 0){
+          int xCordBuyPositionsLabel = 100;
+          string buyPositionsLabelText = IntegerToString(symbolArray[symbolId].buyPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].buyPositionsVolume, 2);
+          color textColor = labelDefaultColor;
+          if(symbolArray[symbolId].buyPositionsVolume < symbolArray[symbolId].sellPositionsVolume) textColor = clrGray;
+          createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_buyPositionsLabel", xCordBuyPositionsLabel, yCordSymbolsPositionsAndOrders, buyPositionsLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      }else{
+          deleteLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_buyPositionsLabel", ChartID());
+      }
+
+      // Label SellPositions
+      if(symbolArray[symbolId].sellPositionsCount > 0){
+          int xCordSellPositionsLabel = 160;
+          string sellPositionsLabelText = IntegerToString(symbolArray[symbolId].sellPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].sellPositionsVolume, 2);
+          color textColor = labelDefaultColor;
+          if(symbolArray[symbolId].buyPositionsVolume > symbolArray[symbolId].sellPositionsVolume) textColor = clrGray;
+          createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_sellPositionsLabel", xCordSellPositionsLabel, yCordSymbolsPositionsAndOrders, sellPositionsLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      }
+
+      // Label PositionsDiff
+      if(positionsVolumeDiff != 0){
+          int xCordPositionsDiffLabel = 220;
+          string positionsDiffLabelText = DoubleToString(positionsVolumeDiff, 2);
+          createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_positionsDiffLabel", xCordPositionsDiffLabel, yCordSymbolsPositionsAndOrders, positionsDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      }
+
+      // Label BuyOrders
+      if(symbolArray[symbolId].buyOrdersCount > 0){
+          int xCordBuyOrderssLabel = 280;
+          string buyOrderssLabelText = IntegerToString(symbolArray[symbolId].buyOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].buyOrdersVolume, 2);
+          color textColor = labelDefaultColor;
+          if(symbolArray[symbolId].buyOrdersVolume < symbolArray[symbolId].sellOrdersVolume) textColor = clrGray;
+          createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_buyOrdersLabel", xCordBuyOrderssLabel, yCordSymbolsPositionsAndOrders, buyOrderssLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      }
+
+      // Label SellOrders
+      if(symbolArray[symbolId].sellOrdersCount > 0){
+          int xCordSellOrderssLabel = 340;
+          string sellOrderssLabelText = IntegerToString(symbolArray[symbolId].sellOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].sellOrdersVolume, 2);
+          color textColor = labelDefaultColor;
+          if(symbolArray[symbolId].buyOrdersVolume > symbolArray[symbolId].sellOrdersVolume) textColor = clrGray;
+          createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_sellOrdersLabel", xCordSellOrderssLabel, yCordSymbolsPositionsAndOrders, sellOrderssLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      }
+
+      // Label OrderssDiff
+      if(orderVolumeDiff != 0){
+          int xCordOrdersDiffLabel = 400;
+          string ordersDiffLabelText = DoubleToString(orderVolumeDiff, 2);
+          createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_ordersDiffLabel", xCordOrdersDiffLabel, yCordSymbolsPositionsAndOrders, ordersDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      }
+
+      // Label PositionsAndOrdersDiff
+      if((positionsVolumeDiff + orderVolumeDiff) != 0){
+          int xCordPositionsAndOrdersDiffLabel = 460;
+          string positionsAndOrdersDiffLabelText = DoubleToString(volumeDiff, 2);
+          createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_positionsAndOrdersDiffLabel", xCordPositionsAndOrdersDiffLabel, yCordSymbolsPositionsAndOrders, positionsAndOrdersDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      }
 
       // Label SymbolRisk
       string symbolRiskLabel = "Risk: " + DoubleToString(symbolArray[symbolId].symbolLossRiskValue, 0) +  " € (" + DoubleToString(symbolArray[symbolId].symbolLossRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100, 1) + " %) / ";
       symbolRiskLabel += DoubleToString(symbolArray[symbolId].symbolTotalRiskValue, 0) +  " € (" + DoubleToString(symbolArray[symbolId].symbolTotalRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100, 1) + " %)";
-      createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolRiskLabel", xCordSymbolRisk, yCordSymbolsPositionsAndOrders, symbolRiskLabel, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+//      createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolRiskLabel", xCordSymbolRisk, yCordSymbolsPositionsAndOrders, symbolRiskLabel, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
 
       // Label SymbolProfit
       string symbolProfitLabel = "Profit: " + DoubleToString(symbolPositionProfit, 0) +  " € (" + DoubleToString(symbolPositionProfit / AccountInfoDouble(ACCOUNT_EQUITY) * 100, 1) + " %)";
-      createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolProfitLabel", xCordSymbolProfit, yCordSymbolsPositionsAndOrders, symbolProfitLabel, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+//      createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolProfitLabel", xCordSymbolProfit, yCordSymbolsPositionsAndOrders, symbolProfitLabel, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
 
       yCordSymbolsPositionsAndOrders += rowHigh;
    }
@@ -490,22 +544,5 @@ void ArraySort2D(double &pSourceArray[][], double &pDestinationArray[][], const 
 }
 
 void OnDeinit(const int reason) {
-   deleteObjects();
-}
-//+------------------------------------------------------------------+
-
-void deleteObjects() {
-
-   int subWindow = ChartWindowFind(0, MY_INDICATOR_SHORTNAME);
-   if (subWindow <= 0) subWindow = 0;
-
-   string objname;
-   for(int i = ObjectsTotal(0, subWindow, -1) - 1; i >= 0; i--) {
-      objname = ObjectName(0, i);
-      if(StringFind(objname, objectNamePrefix) == -1) {
-         continue;
-      } else {
-         ObjectDelete(0, objname);
-      }
-   }
+   deleteLabelLike(objectNamePrefix);
 }
