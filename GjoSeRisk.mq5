@@ -363,7 +363,7 @@ void calculateRisk() {
       }
 
       // Label PositionsDiff
-      if(positionsVolumeDiff != 0){
+      if(NormalizeDouble(positionsVolumeDiff, 2) != 0){
           int xCordPositionsDiffLabel = 220;
           string positionsDiffLabelText = DoubleToString(positionsVolumeDiff, 2);
           createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_positionsDiffLabel", xCordPositionsDiffLabel, yCordSymbolsPositionsAndOrders, positionsDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
@@ -388,14 +388,14 @@ void calculateRisk() {
       }
 
       // Label OrderssDiff
-      if(orderVolumeDiff != 0){
+      if(NormalizeDouble(orderVolumeDiff, 2) != 0){
           int xCordOrdersDiffLabel = 400;
           string ordersDiffLabelText = DoubleToString(orderVolumeDiff, 2);
           createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_ordersDiffLabel", xCordOrdersDiffLabel, yCordSymbolsPositionsAndOrders, ordersDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
       }
 
       // Label PositionsAndOrdersDiff
-      if((positionsVolumeDiff + orderVolumeDiff) != 0){
+      if(NormalizeDouble(positionsVolumeDiff + orderVolumeDiff, 2) != 0){
           int xCordPositionsAndOrdersDiffLabel = 460;
           string positionsAndOrdersDiffLabelText = DoubleToString(volumeDiff, 2);
           createLabel(objectNamePrefix + symbolArray[symbolId].SymbolString + "_positionsAndOrdersDiffLabel", xCordPositionsAndOrdersDiffLabel, yCordSymbolsPositionsAndOrders, positionsAndOrdersDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
