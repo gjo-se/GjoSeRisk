@@ -15,6 +15,7 @@
    1.5.0    new Version auf RiskCalc inkl. Hedges
    1.5.1    fixed Positions and Orders Count & Volume
    1.5.2    fixed Volume Columns
+   1.5.3    added Risk & ProfitLabels
 
    ===============
 
@@ -26,7 +27,7 @@
 #property   copyright   "2022, GjoSe"
 #property   link        "http://www.gjo-se.com"
 #property   description "GjoSe Risk Management"
-#define     VERSION "1.5.2"
+#define     VERSION "1.5.3"
 #property   version VERSION
 #property   strict
 
