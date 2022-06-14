@@ -46,6 +46,7 @@ CPending    Pending;
 CNewBar     NewBar;
 CTimer      Timer;
 
+bool isNewM1Bar = false;
 
 const string MY_INDICATOR_SHORTNAME = "GjoSeRisk";
 const int SORT_ASC = 0;
@@ -108,7 +109,12 @@ int OnCalculate(const int pRatesTotal,
                 const long &volume[],
                 const int &spread[]) {
 
-//deleteLabelLike(objectNamePrefix);
+   (NewM1Bar()) ? isNewM1Bar = true : isNewM1Bar = false;
+
+   if(isNewM1Bar) {
+      deleteLabelLike(objectNamePrefix);
+   }
+
    calculateRisk();
 
    return(pRatesTotal);
@@ -643,5 +649,19 @@ void ArraySort2D(double &pSourceArray[][], double &pDestinationArray[][], const 
 //+------------------------------------------------------------------+
 void OnDeinit(const int reason) {
    deleteLabelLike(objectNamePrefix);
+}
+//+------------------------------------------------------------------+
+
+//+------------------------------------------------------------------+
+//|                                                                  |
+//+------------------------------------------------------------------+
+void OnChartEvent(const int id,
+                  const long &lparam,
+                  const double &dparam,
+                  const string &sparam) {
+
+   if(id == CHARTEVENT_OBJECT_DRAG) {
+      deleteLabelLike(objectNamePrefix);
+   }
 }
 //+------------------------------------------------------------------+
