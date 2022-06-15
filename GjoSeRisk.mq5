@@ -362,12 +362,11 @@ void calculateRisk() {
                   symbolArray[symbolId].symbolLossRiskValue = MathMin(AccountInfoDouble(ACCOUNT_EQUITY), symbolArray[symbolId].symbolLossRiskValue);
                   symbolArray[symbolId].symbolTotalRiskValue = symbolArray[symbolId].symbolLossRiskValue + buyPositionsProfit + sellPositionsProfit;
                   positionsVolumeDiffLocal -= sellOrderVolume;
-//                  Print("StartVolume: " + MathAbs(positionsVolumeDiff) + " buyPositionsLevelAverage: " + DoubleToString(buyPositionsLevelAverage, Digits()) + " sellOrderLevel: " + DoubleToString(sellOrderLevel, Digits()) + " Volume: " + sellOrderVolume + " positionRiskPoints: " + DoubleToString(positionRiskPoints, 0) + " positionRiskValue: " + DoubleToString(positionRiskValue, 0) + " symbolLossRiskValue: " + DoubleToString(symbolArray[symbolId].symbolLossRiskValue, 0) + " symbolTotalRiskValue: " + DoubleToString(symbolArray[symbolId].symbolTotalRiskValue, 0) + " RestVol: " + DoubleToString(positionsVolumeDiffLocal, 2));
                }
             }
          }
 
-         if(positionsVolumeDiffLocal > 0) {
+         if(NormalizeDouble(positionsVolumeDiffLocal, 2) > 0) {
             symbolArray[symbolId].symbolLossRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
             symbolUndefinedRisk = true;
          }
@@ -393,7 +392,7 @@ void calculateRisk() {
             }
          }
 
-         if(positionsVolumeDiffLocal > 0) {
+         if(NormalizeDouble(positionsVolumeDiffLocal, 2) > 0) {
             symbolArray[symbolId].symbolLossRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
             symbolUndefinedRisk = true;
          }
