@@ -23,6 +23,7 @@
 
 #include <GjoSe\\Utilities\\InclBasicUtilities.mqh>
 #include <GjoSe\\Objects\\InclLabel.mqh>
+#include <GjoSe\Export\CPairedDealInfo.mqh>
 
 #property   copyright   "2022, GjoSe"
 #property   link        "http://www.gjo-se.com"
@@ -44,10 +45,11 @@ input double InpMaxAccountRiskPercent = 10;
 input double InpMinRRR = 2;
 
 string objectNamePrefix = "GjoSeRisk_";
-CPositions  Positions;
-CPending    Pending;
-CNewBar     NewBar;
-CTimer      Timer;
+CPositions      Positions;
+CPending        Pending;
+CNewBar         NewBar;
+CTimer          Timer;
+CPairedDealInfo TradeHistory;
 
 bool isNewM1Bar = false;
 
@@ -76,12 +78,15 @@ struct PositionStruct {
 
    double            symbolLossRiskValue;
    double            symbolTotalRiskValue;
+   datetime          symbolFirstInDatetime;
+   double            symbolTradeHistoryProfit;
 
 //   int      Reward;
 //   double   RewardPercent;
 //   double   RRR;
 };
 
+PositionStruct positionStruct;
 int symbolsCount;
 PositionStruct symbolArray[];
 //PositionStruct accountArray[];
@@ -578,6 +583,19 @@ void calculateRisk() {
          ObjectSetString(ChartID(), symbolProfitLabelObjectName, OBJPROP_TEXT, symbolProfitLabelText);
       }
 
+      // Label SymbolTradeHistoryProfit
+      string symbolTradeHistoryProfitLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolTradeHistoryProfitLabel";
+      int xCordSymbolTradeHistoryProfitLabel = 850;
+      double symbolTradeHistoryProfitPercent = symbolArray[symbolId].symbolTradeHistoryProfit / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
+      string symbolTradeHistoryProfitLabelText = DoubleToString(symbolArray[symbolId].symbolTradeHistoryProfit, 0) +  " € (" + DoubleToString(symbolTradeHistoryProfitPercent, 1) + " %)";
+      textColor = labelDefaultColor;
+      if(symbolArray[symbolId].symbolTradeHistoryProfit > 0) textColor = clrGreen;
+      if(ObjectFind(ChartID(), symbolTradeHistoryProfitLabelObjectName) < 0) {
+         createLabel(symbolTradeHistoryProfitLabelObjectName, xCordSymbolTradeHistoryProfitLabel, yCordSymbolsPositionsAndOrders, symbolTradeHistoryProfitLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      } else {
+         ObjectSetString(ChartID(), symbolTradeHistoryProfitLabelObjectName, OBJPROP_TEXT, symbolTradeHistoryProfitLabelText);
+      }
+
       yCordSymbolsPositionsAndOrders += rowHigh;
    }
 
@@ -605,7 +623,6 @@ double getPointValueBySymbol(string pPositionSymbol) {
 
 PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
 
-   PositionStruct positionStruct;
    positionStruct.SymbolString = PositionSymbol(pPositionTicket);
 
    positionStruct.buyPositionsCount = 0;
@@ -627,6 +644,8 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
 
    positionStruct.symbolLossRiskValue = 0;
    positionStruct.symbolTotalRiskValue = 0;
+   positionStruct.symbolFirstInDatetime = 0;
+   positionStruct.symbolTradeHistoryProfit = 0;
 
    if(PositionType(pPositionTicket) == ORDER_TYPE_BUY) {
       positionStruct.buyPositionsCount = 1;
@@ -653,6 +672,7 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
       }
    }
 
+
    long pendingTickets[];
    Pending.GetTickets(PositionSymbol(pPositionTicket), pendingTickets);
    for(int pendingTicketsId = 0; pendingTicketsId < ArraySize(pendingTickets); pendingTicketsId++) {
@@ -677,7 +697,33 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
       }
    }
 
+   if(positionStruct.symbolFirstInDatetime == 0 || PositionOpenTime(pPositionTicket) < positionStruct.symbolFirstInDatetime) positionStruct.symbolFirstInDatetime = PositionOpenTime(pPositionTicket);
+   getTradeHistoryProfit(positionStruct.SymbolString, positionStruct.symbolFirstInDatetime);
+
    return positionStruct;
+}
+
+bool getTradeHistoryProfit(const string pSymbolString, const datetime pFirstInDatetime, datetime pToDatetime = 0){
+
+   ResetLastError();
+
+   const datetime fromStartDatetime = 0;
+   if(pToDatetime == 0) pToDatetime = TimeCurrent();
+   if(!TradeHistory.HistorySelect(fromStartDatetime, pToDatetime)) {
+      Alert("CPairedDealInfo::HistorySelect() failed!: " + IntegerToString(GetLastError()));
+      return(false);
+   }
+
+   for(int tradeHistoryIndex = 0; tradeHistoryIndex < TradeHistory.Total(); tradeHistoryIndex++) {
+      if(TradeHistory.SelectByIndex(tradeHistoryIndex)) {
+         if(TradeHistory.Symbol() == pSymbolString && TradeHistory.TimeClose() >= pFirstInDatetime){
+            double   netProfit   = TradeHistory.Profit() + TradeHistory.Commission() + TradeHistory.Swap();
+            positionStruct.symbolTradeHistoryProfit += netProfit;
+         }
+      }
+   }
+
+   return (true);
 }
 
 void ArraySort2D(double &pSourceArray[][], double &pDestinationArray[][], const int pIndexToSort, const int pSortDirection = 0) {
