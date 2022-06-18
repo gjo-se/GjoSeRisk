@@ -39,9 +39,8 @@
 #property indicator_maximum             0.0
 
 input int InpSymbolCount = 5;
-input double InpMaxSymbolLossRiskPercent = 1;
-input double InpMaxSymbolTotalRiskPercent = 10;
-input double InpMaxAccountRiskPercent = 10;
+input double InpMaxSymbolRiskPercent = 2;
+input double InpMaxAccountRiskPercent = 20;
 input double InpMinRRR = 2;
 
 string objectNamePrefix = "GjoSeRisk_";
@@ -88,8 +87,7 @@ struct PositionStruct {
 PositionStruct positionStruct;
 int symbolsCount;
 PositionStruct symbolArray[];
-//PositionStruct accountArray[];
-
+double accountRiskValue;
 //+------------------------------------------------------------------+
 //| Custom indicator initialization function                         |
 //+------------------------------------------------------------------+
@@ -133,7 +131,7 @@ void calculateRisk() {
    if (subWindow <= 0) subWindow = 0;
 
    ArrayResize(symbolArray, 0);
-//   ArrayResize(accountArray, 0);
+   accountRiskValue = 0;
 
    long    positionTicket = 0;
    long    pendingTicket = 0;
@@ -288,23 +286,6 @@ void calculateRisk() {
          }
 
       }
-
-      // Account
-//      if(ArraySize(accountArray) > 0) {
-//         for(int symbolId = 0; symbolId < ArraySize(accountArray); symbolId++) {
-//            accountArray[symbolId].Count += 1;
-//            accountArray[symbolId].Volume += positionVolume;
-//            accountArray[symbolId].Risk += positionRisk;
-//            accountArray[symbolId].RiskPercent += positionRiskPercent;
-//            accountArray[symbolId].Reward += positionReward;
-//            accountArray[symbolId].RewardPercent += positionRewardPercent;
-//            accountArray[symbolId].Profit += positionProfit;
-//            accountArray[symbolId].ProfitPip += pipProfit;
-//         }
-//      } else {
-//         ArrayResize(accountArray, ArraySize(accountArray) + 1);
-//         accountArray[ArraySize(accountArray) - 1] = positionStruct;
-//      }
    }
 
 // Symbols
@@ -371,8 +352,11 @@ void calculateRisk() {
             }
          }
 
+         accountRiskValue += symbolArray[symbolId].symbolRiskValue;
+
          if(NormalizeDouble(positionsVolumeDiffLocal, 2) > 0) {
             symbolArray[symbolId].symbolRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
+            accountRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
             symbolUndefinedRisk = true;
          }
       }
@@ -396,8 +380,11 @@ void calculateRisk() {
             }
          }
 
+         accountRiskValue += symbolArray[symbolId].symbolRiskValue;
+
          if(NormalizeDouble(positionsVolumeDiffLocal, 2) > 0) {
             symbolArray[symbolId].symbolRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
+            accountRiskValue = AccountInfoDouble(ACCOUNT_EQUITY);
             symbolUndefinedRisk = true;
          }
       }
@@ -528,23 +515,23 @@ void calculateRisk() {
          }
       }
 
-      // Label SymbolTotalRisk
-      string symbolTotalRiskLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolTotalRiskLabel";
+      // Label SymbolRisk
+      string symbolRiskLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_symbolRiskLabel";
       if(NormalizeDouble(symbolArray[symbolId].symbolRiskValue, 0) != 0) {
-         int xCordSymbolTotalRiskLabel = 650;
-         double symbolTotalRiskPercent = symbolArray[symbolId].symbolRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
-         string symbolTotalRiskLabelText = DoubleToString(symbolArray[symbolId].symbolRiskValue, 0) +  " € (" + DoubleToString(symbolTotalRiskPercent, 1) + " %)";
+         int xCordSymbolRiskLabel = 650;
+         double symbolRiskPercent = symbolArray[symbolId].symbolRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
+         string symbolRiskLabelText = DoubleToString(symbolArray[symbolId].symbolRiskValue, 0) +  " € (" + DoubleToString(symbolRiskPercent, 1) + " %)";
          color textColor = labelDefaultColor;
-         if(symbolTotalRiskPercent > InpMaxSymbolTotalRiskPercent) textColor = clrRed;
-         if(ObjectFind(ChartID(), symbolTotalRiskLabelObjectName) < 0) {
-            createLabel(symbolTotalRiskLabelObjectName, xCordSymbolTotalRiskLabel, yCordSymbolsPositionsAndOrders, symbolTotalRiskLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+         if(symbolRiskPercent > InpMaxSymbolRiskPercent) textColor = clrRed;
+         if(ObjectFind(ChartID(), symbolRiskLabelObjectName) < 0) {
+            createLabel(symbolRiskLabelObjectName, xCordSymbolRiskLabel, yCordSymbolsPositionsAndOrders, symbolRiskLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
          } else {
-            ObjectSetString(ChartID(), symbolTotalRiskLabelObjectName, OBJPROP_TEXT, symbolTotalRiskLabelText);
-            ObjectSetInteger(ChartID(), symbolTotalRiskLabelObjectName, OBJPROP_COLOR, textColor);
+            ObjectSetString(ChartID(), symbolRiskLabelObjectName, OBJPROP_TEXT, symbolRiskLabelText);
+            ObjectSetInteger(ChartID(), symbolRiskLabelObjectName, OBJPROP_COLOR, textColor);
          }
       } else {
-         if(ObjectFind(ChartID(), symbolTotalRiskLabelObjectName) >= 0) {
-            deleteLabel(symbolTotalRiskLabelObjectName, ChartID());
+         if(ObjectFind(ChartID(), symbolRiskLabelObjectName) >= 0) {
+            deleteLabel(symbolRiskLabelObjectName, ChartID());
          }
       }
 
@@ -576,20 +563,22 @@ void calculateRisk() {
 
       yCordSymbolsPositionsAndOrders += rowHigh;
    }
-
-// Account
-//   for(int index = 0; index < ArraySize(accountArray); index++) {
-//      symbolRRR = (double)accountArray[index].Reward / (double)accountArray[index].Risk;
-//      string positionSymbolObjectFix = "Count: " + accountArray[index].Count + " | Vol: " + accountArray[index].Volume;
-//      string positionSymbolObjectRisk = "Risk: " + accountArray[index].Risk +  "€ (" + NormalizeDouble(accountArray[index].RiskPercent, 1) +  "%) | Reward: " + accountArray[index].Reward + "€ (" + NormalizeDouble(accountArray[index].RewardPercent, 1) +  "%) | RRR: " + NormalizeDouble(symbolRRR, 1);
-//      string positionSymbolObjectProfit = "Profit: " + accountArray[index].Profit +  "€";
-//
-////      createLabel(0, objectNamePrefix + "account", subWindow, xCordPositionFix, yCordAccountPositionsAndOrders, positionSymbolObjectFix, fontSize, positionColor);
-////      createLabel(0, objectNamePrefix + "account" + "Risk", subWindow, xCordPositionRisk, yCordAccountPositionsAndOrders, positionSymbolObjectRisk, fontSize, positionColor);
-////      createLabel(0, objectNamePrefix + "account" + "Profit", subWindow, xCordPositionProfit, yCordAccountPositionsAndOrders, positionSymbolObjectProfit, fontSize, positionColor);
-//      yCordAccountPositionsAndOrders += rowHigh;
-//   }
-
+   
+      // Label AccountRisk
+      string accountRiskLabelObjectName = objectNamePrefix + "_accountRiskLabel";
+      if(NormalizeDouble(accountRiskValue, 0) != 0) {
+         int xCordAccountRiskLabel = 20;
+         double accountRiskPercent = accountRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
+         string accountRiskLabelText = DoubleToString(accountRiskValue, 0) +  " € (" + DoubleToString(accountRiskPercent, 1) + " %)";
+         color textColor = labelDefaultColor;
+         if(accountRiskPercent > InpMaxAccountRiskPercent) textColor = clrRed;
+         if(ObjectFind(ChartID(), accountRiskLabelObjectName) < 0) {
+            createLabel(accountRiskLabelObjectName, xCordAccountRiskLabel, 10, accountRiskLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+         } else {
+            ObjectSetString(ChartID(), accountRiskLabelObjectName, OBJPROP_TEXT, accountRiskLabelText);
+            ObjectSetInteger(ChartID(), accountRiskLabelObjectName, OBJPROP_COLOR, textColor);
+         }
+      }
 }
 
 //+------------------------------------------------------------------+
