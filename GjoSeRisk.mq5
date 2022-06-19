@@ -412,7 +412,7 @@ void calculateRisk() {
       if(symbolArray[symbolId].buyPositionsCount > 0) {
          int xCordBuyPositionsLabel = 100;
          string buyPositionsLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_buyPositionsLabel";
-         string buyPositionsLabelText = IntegerToString(symbolArray[symbolId].buyPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].buyPositionsVolume, 2);
+         string buyPositionsLabelText = DoubleToString(symbolArray[symbolId].buyPositionsVolume, 2);
          color textColor = labelDefaultColor;
          if(NormalizeDouble(symbolArray[symbolId].buyPositionsVolume, 2) < NormalizeDouble(symbolArray[symbolId].sellPositionsVolume, 2)) textColor = clrGray;
          if(ObjectFind(ChartID(), buyPositionsLabelObjectName) < 0) {
@@ -426,7 +426,7 @@ void calculateRisk() {
       if(symbolArray[symbolId].sellPositionsCount > 0) {
          int xCordSellPositionsLabel = 160;
          string sellPositionsLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_sellPositionsLabel";
-         string sellPositionsLabelText = IntegerToString(symbolArray[symbolId].sellPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].sellPositionsVolume, 2);
+         string sellPositionsLabelText = DoubleToString(symbolArray[symbolId].sellPositionsVolume, 2);
          color textColor = labelDefaultColor;
          if(NormalizeDouble(symbolArray[symbolId].buyPositionsVolume, 2) > NormalizeDouble(symbolArray[symbolId].sellPositionsVolume, 2)) textColor = clrGray;
          if(ObjectFind(ChartID(), sellPositionsLabelObjectName) < 0) {
