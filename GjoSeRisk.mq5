@@ -158,7 +158,7 @@ void calculateRisk() {
    int yCordAccountPositionsAndOrdersHeadlineHeadline = yCordAccountHeadline + yCordPositionsAndOrdersOffsetHeadline;
    int yCordAccountPositionsAndOrders = yCordAccountPositionsAndOrdersHeadlineHeadline + rowHigh * 2;
 
-   int yCordSymbolsHeadline = 200;
+   int yCordSymbolsHeadline = 10;
    int yCordSymbolsPositionsAndOrdersHeadlineHeadline = yCordSymbolsHeadline + yCordPositionsAndOrdersOffsetHeadline;
    int yCordSymbolsPositionsAndOrders = yCordSymbolsPositionsAndOrdersHeadlineHeadline + rowHigh * 2;
 
@@ -182,7 +182,7 @@ void calculateRisk() {
    string positionStringLabelText = "Positions";
    if(ObjectFind(ChartID(), positionStringLabelObjectName) < 0) {
       int xCord = 140;
-      int yCord = 240;
+      int yCord = 50;
       createLabel(positionStringLabelObjectName, xCord, yCord, positionStringLabelText, headLine2FontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
    } else {
       ObjectSetString(ChartID(), positionStringLabelObjectName, OBJPROP_TEXT, positionStringLabelText);
@@ -193,7 +193,7 @@ void calculateRisk() {
    string ordersStringLabelText = "Orders";
    if(ObjectFind(ChartID(), ordersStringLabelObjectName) < 0) {
       int xCord = 330;
-      int yCord = 240;
+      int yCord = 50;
       createLabel(ordersStringLabelObjectName, xCord, yCord, ordersStringLabelText, headLine2FontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
    } else {
       ObjectSetString(ChartID(), ordersStringLabelObjectName, OBJPROP_TEXT, ordersStringLabelText);
@@ -204,7 +204,7 @@ void calculateRisk() {
    string positionsOrdersDiffStringLabelText = "Diff";
    if(ObjectFind(ChartID(), positionsOrdersDiffStringLabelObjectName) < 0) {
       int xCord = 460;
-      int yCord = 240;
+      int yCord = 50;
       createLabel(positionsOrdersDiffStringLabelObjectName, xCord, yCord, positionsOrdersDiffStringLabelText, headLine2FontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
    } else {
       ObjectSetString(ChartID(), positionsOrdersDiffStringLabelObjectName, OBJPROP_TEXT, positionsOrdersDiffStringLabelText);
@@ -215,7 +215,7 @@ void calculateRisk() {
    string riskStringLabelText = "Risk";
    if(ObjectFind(ChartID(), riskLabelObjectName) < 0) {
       int xCord = 630;
-      int yCord = 240;
+      int yCord = 50;
       createLabel(riskLabelObjectName, xCord, yCord, riskStringLabelText, headLine2FontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
    } else {
       ObjectSetString(ChartID(), riskLabelObjectName, OBJPROP_TEXT, riskStringLabelText);
@@ -226,7 +226,7 @@ void calculateRisk() {
    string profitStringLabelText = "Profit";
    if(ObjectFind(ChartID(), profitLabelObjectName) < 0) {
       int xCord = 750;
-      int yCord = 240;
+      int yCord = 50;
       createLabel(profitLabelObjectName, xCord, yCord, profitStringLabelText, headLine2FontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
    } else {
       ObjectSetString(ChartID(), profitLabelObjectName, OBJPROP_TEXT, profitStringLabelText);
