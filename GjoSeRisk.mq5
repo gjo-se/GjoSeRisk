@@ -191,15 +191,15 @@ void calculateRisk() {
    }
 
 // Label OrdersString
-   string ordersStringLabelObjectName = objectNamePrefix + "_ordersString";
-   string ordersStringLabelText = "Orders";
-   if(ObjectFind(ChartID(), ordersStringLabelObjectName) < 0) {
-      int xCord = 330;
-      int yCord = 50;
-      createLabel(ordersStringLabelObjectName, xCord, yCord, ordersStringLabelText, headLine2FontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
-   } else {
-      ObjectSetString(ChartID(), ordersStringLabelObjectName, OBJPROP_TEXT, ordersStringLabelText);
-   }
+//   string ordersStringLabelObjectName = objectNamePrefix + "_ordersString";
+//   string ordersStringLabelText = "Orders";
+//   if(ObjectFind(ChartID(), ordersStringLabelObjectName) < 0) {
+//      int xCord = 330;
+//      int yCord = 50;
+//      createLabel(ordersStringLabelObjectName, xCord, yCord, ordersStringLabelText, headLine2FontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+//   } else {
+//      ObjectSetString(ChartID(), ordersStringLabelObjectName, OBJPROP_TEXT, ordersStringLabelText);
+//   }
 
 // Label PositionsOrdersDiffString
    string positionsOrdersDiffStringLabelObjectName = objectNamePrefix + "_positionsOrdersDiffString";
@@ -453,48 +453,48 @@ void calculateRisk() {
       }
 
       // Label BuyOrders
-      if(symbolArray[symbolId].buyOrdersCount > 0) {
-         int xCordBuyOrderssLabel = 280;
-         string buyOrderssLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_buyOrdersLabel";
-         string buyOrderssLabelText = IntegerToString(symbolArray[symbolId].buyOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].buyOrdersVolume, 2);
-         color textColor = labelDefaultColor;
-         if(symbolArray[symbolId].buyOrdersVolume < symbolArray[symbolId].sellOrdersVolume) textColor = clrGray;
-         if(ObjectFind(ChartID(), buyOrderssLabelObjectName) < 0) {
-            createLabel(buyOrderssLabelObjectName, xCordBuyOrderssLabel, yCordSymbolsPositionsAndOrders, buyOrderssLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
-         } else {
-            ObjectSetString(ChartID(), buyOrderssLabelObjectName, OBJPROP_TEXT, buyOrderssLabelText);
-         }
-      }
+//      if(symbolArray[symbolId].buyOrdersCount > 0) {
+//         int xCordBuyOrderssLabel = 280;
+//         string buyOrderssLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_buyOrdersLabel";
+//         string buyOrderssLabelText = IntegerToString(symbolArray[symbolId].buyOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].buyOrdersVolume, 2);
+//         color textColor = labelDefaultColor;
+//         if(symbolArray[symbolId].buyOrdersVolume < symbolArray[symbolId].sellOrdersVolume) textColor = clrGray;
+//         if(ObjectFind(ChartID(), buyOrderssLabelObjectName) < 0) {
+//            createLabel(buyOrderssLabelObjectName, xCordBuyOrderssLabel, yCordSymbolsPositionsAndOrders, buyOrderssLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+//         } else {
+//            ObjectSetString(ChartID(), buyOrderssLabelObjectName, OBJPROP_TEXT, buyOrderssLabelText);
+//         }
+//      }
 
       // Label SellOrders
-      if(symbolArray[symbolId].sellOrdersCount > 0) {
-         int xCordSellOrderssLabel = 340;
-         string sellOrderssLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_sellOrdersLabel";
-         string sellOrderssLabelText = IntegerToString(symbolArray[symbolId].sellOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].sellOrdersVolume, 2);
-         color textColor = labelDefaultColor;
-         if(symbolArray[symbolId].buyOrdersVolume > symbolArray[symbolId].sellOrdersVolume) textColor = clrGray;
-         if(ObjectFind(ChartID(), sellOrderssLabelObjectName) < 0) {
-            createLabel(sellOrderssLabelObjectName, xCordSellOrderssLabel, yCordSymbolsPositionsAndOrders, sellOrderssLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
-         } else {
-            ObjectSetString(ChartID(), sellOrderssLabelObjectName, OBJPROP_TEXT, sellOrderssLabelText);
-         }
-      }
+//      if(symbolArray[symbolId].sellOrdersCount > 0) {
+//         int xCordSellOrderssLabel = 340;
+//         string sellOrderssLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_sellOrdersLabel";
+//         string sellOrderssLabelText = IntegerToString(symbolArray[symbolId].sellOrdersCount) + ": " + DoubleToString(symbolArray[symbolId].sellOrdersVolume, 2);
+//         color textColor = labelDefaultColor;
+//         if(symbolArray[symbolId].buyOrdersVolume > symbolArray[symbolId].sellOrdersVolume) textColor = clrGray;
+//         if(ObjectFind(ChartID(), sellOrderssLabelObjectName) < 0) {
+//            createLabel(sellOrderssLabelObjectName, xCordSellOrderssLabel, yCordSymbolsPositionsAndOrders, sellOrderssLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+//         } else {
+//            ObjectSetString(ChartID(), sellOrderssLabelObjectName, OBJPROP_TEXT, sellOrderssLabelText);
+//         }
+//      }
 
       // Label OrderssDiff
-      string ordersDiffLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_ordersDiffLabel";
-      if(NormalizeDouble(orderVolumeDiff, 2) != 0) {
-         int xCordOrdersDiffLabel = 400;
-         string ordersDiffLabelText = DoubleToString(orderVolumeDiff, 2);
-         if(ObjectFind(ChartID(), ordersDiffLabelObjectName) < 0) {
-            createLabel(ordersDiffLabelObjectName, xCordOrdersDiffLabel, yCordSymbolsPositionsAndOrders, ordersDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
-         } else {
-            ObjectSetString(ChartID(), ordersDiffLabelObjectName, OBJPROP_TEXT, ordersDiffLabelText);
-         }
-      } else {
-         if(ObjectFind(ChartID(), ordersDiffLabelObjectName) >= 0) {
-            deleteLabel(ordersDiffLabelObjectName, ChartID());
-         }
-      }
+//      string ordersDiffLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_ordersDiffLabel";
+//      if(NormalizeDouble(orderVolumeDiff, 2) != 0) {
+//         int xCordOrdersDiffLabel = 400;
+//         string ordersDiffLabelText = DoubleToString(orderVolumeDiff, 2);
+//         if(ObjectFind(ChartID(), ordersDiffLabelObjectName) < 0) {
+//            createLabel(ordersDiffLabelObjectName, xCordOrdersDiffLabel, yCordSymbolsPositionsAndOrders, ordersDiffLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+//         } else {
+//            ObjectSetString(ChartID(), ordersDiffLabelObjectName, OBJPROP_TEXT, ordersDiffLabelText);
+//         }
+//      } else {
+//         if(ObjectFind(ChartID(), ordersDiffLabelObjectName) >= 0) {
+//            deleteLabel(ordersDiffLabelObjectName, ChartID());
+//         }
+//      }
 
       // Label PositionsAndOrdersDiff
       string positionsAndOrdersDiffLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_positionsAndOrdersDiffLabel";
