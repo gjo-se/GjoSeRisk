@@ -118,9 +118,8 @@ int OnCalculate(const int pRatesTotal,
 
    if(isNewM1Bar) {
       deleteLabelLike(objectNamePrefix);
+      calculateRisk();
    }
-
-   calculateRisk();
 
    return(pRatesTotal);
 }
@@ -741,6 +740,7 @@ void OnChartEvent(const int id,
 
    if(id == CHARTEVENT_OBJECT_DRAG) {
       deleteLabelLike(objectNamePrefix);
+      calculateRisk();
    }
 }
 //+------------------------------------------------------------------+
