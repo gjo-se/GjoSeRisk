@@ -70,15 +70,17 @@ struct PositionStruct {
    double            sellOrdersLevelVolumeArray[][2];
    double            sellPositionsProfit;
 
+   bool              ordersLoaded;
    int               buyOrdersCount;
    double            buyOrdersVolume;
    int               sellOrdersCount;
    double            sellOrdersVolume;
 
-   double            symbolRiskValue;
+   bool              tradeHistoryLoaded;
    long              symbolFirstInDatetime;
    double            symbolTradeHistoryProfit;
 
+   double            symbolRiskValue;
 //   int      Reward;
 //   double   RewardPercent;
 //   double   RRR;
@@ -603,14 +605,17 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
    ArrayResize(positionStruct.sellOrdersLevelVolumeArray, 0);
    positionStruct.sellPositionsProfit = 0;
 
+   positionStruct.ordersLoaded = false;
    positionStruct.buyOrdersCount = 0;
    positionStruct.buyOrdersVolume = 0;
    positionStruct.sellOrdersCount = 0;
    positionStruct.sellOrdersVolume = 0;
 
-   positionStruct.symbolRiskValue = 0;
+   positionStruct.tradeHistoryLoaded = false;
    positionStruct.symbolFirstInDatetime = 0;
    positionStruct.symbolTradeHistoryProfit = 0;
+
+   positionStruct.symbolRiskValue = 0;
 
    if(PositionType(pPositionTicket) == ORDER_TYPE_BUY) {
       positionStruct.buyPositionsCount = 1;
@@ -638,32 +643,37 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
    }
 
 
-   long pendingTickets[];
-   Pending.GetTickets(PositionSymbol(pPositionTicket), pendingTickets);
-   for(int pendingTicketsId = 0; pendingTicketsId < ArraySize(pendingTickets); pendingTicketsId++) {
-      long pendingTicket = pendingTickets[pendingTicketsId];
-      if(pendingTicket > 0) {
-         if(OrderType(pendingTicket) == ORDER_TYPE_BUY_STOP) {
-            positionStruct.buyOrdersCount += 1;
-            positionStruct.buyOrdersVolume += OrderVolume(pendingTicket);
+   if(positionStruct.ordersLoaded == false) {
+      long pendingTickets[];
+      Pending.GetTickets(PositionSymbol(pPositionTicket), pendingTickets);
+      for(int pendingTicketsId = 0; pendingTicketsId < ArraySize(pendingTickets); pendingTicketsId++) {
+         long pendingTicket = pendingTickets[pendingTicketsId];
+         if(pendingTicket > 0) {
+            if(OrderType(pendingTicket) == ORDER_TYPE_BUY_STOP) {
+               positionStruct.buyOrdersCount += 1;
+               positionStruct.buyOrdersVolume += OrderVolume(pendingTicket);
 
-            ArrayResize(positionStruct.buyOrdersLevelVolumeArray, ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) + 1);
-            positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][0] = OrderOpenPrice(pendingTicket);
-            positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][1] = OrderVolume(pendingTicket);
-         }
-         if(OrderType(pendingTicket) == ORDER_TYPE_SELL_STOP) {
-            positionStruct.sellOrdersCount += 1;
-            positionStruct.sellOrdersVolume += OrderVolume(pendingTicket);
+               ArrayResize(positionStruct.buyOrdersLevelVolumeArray, ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) + 1);
+               positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][0] = OrderOpenPrice(pendingTicket);
+               positionStruct.buyOrdersLevelVolumeArray[ArrayRange(positionStruct.buyOrdersLevelVolumeArray, 0) - 1][1] = OrderVolume(pendingTicket);
+            }
+            if(OrderType(pendingTicket) == ORDER_TYPE_SELL_STOP) {
+               positionStruct.sellOrdersCount += 1;
+               positionStruct.sellOrdersVolume += OrderVolume(pendingTicket);
 
-            ArrayResize(positionStruct.sellOrdersLevelVolumeArray, ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) + 1);
-            positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][0] = OrderOpenPrice(pendingTicket);
-            positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][1] = OrderVolume(pendingTicket);
+               ArrayResize(positionStruct.sellOrdersLevelVolumeArray, ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) + 1);
+               positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][0] = OrderOpenPrice(pendingTicket);
+               positionStruct.sellOrdersLevelVolumeArray[ArrayRange(positionStruct.sellOrdersLevelVolumeArray, 0) - 1][1] = OrderVolume(pendingTicket);
+            }
          }
       }
+
+      positionStruct.ordersLoaded = true;
+
    }
 
    if(positionStruct.symbolFirstInDatetime == 0 || PositionOpenTime(pPositionTicket) < positionStruct.symbolFirstInDatetime) positionStruct.symbolFirstInDatetime = PositionOpenTime(pPositionTicket);
-   getTradeHistoryProfit(positionStruct.SymbolString, positionStruct.symbolFirstInDatetime);
+   if(positionStruct.tradeHistoryLoaded == false) getTradeHistoryProfit(positionStruct.SymbolString, positionStruct.symbolFirstInDatetime);
 
    return positionStruct;
 }
@@ -687,6 +697,8 @@ bool getTradeHistoryProfit(const string pSymbolString, const datetime pFirstInDa
          }
       }
    }
+
+   positionStruct.tradeHistoryLoaded = true;
 
    return (true);
 }
