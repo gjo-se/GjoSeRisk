@@ -569,7 +569,7 @@ void calculateRisk() {
       if(NormalizeDouble(accountRiskValue, 0) != 0) {
          int xCordAccountRiskLabel = 20;
          double accountRiskPercent = accountRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
-         string accountRiskLabelText = DoubleToString(accountRiskValue, 0) +  " € (" + DoubleToString(accountRiskPercent, 1) + " %)";
+         string accountRiskLabelText = "AccountRisk: " + DoubleToString(accountRiskValue, 0) +  " € (" + DoubleToString(accountRiskPercent, 1) + " %)";
          color textColor = labelDefaultColor;
          if(accountRiskPercent > InpMaxAccountRiskPercent) textColor = clrRed;
          if(ObjectFind(ChartID(), accountRiskLabelObjectName) < 0) {
