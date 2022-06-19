@@ -249,7 +249,7 @@ void calculateRisk() {
             if(PositionSymbol(positionTicket) == symbolArray[symbolId].SymbolString) {
                if(PositionType(positionTicket) == ORDER_TYPE_BUY) {
                   symbolArray[symbolId].buyPositionsCount += 1;
-                  symbolArray[symbolId].buyPositionsVolume +=  NormalizeDouble(PositionVolume(positionTicket),2);
+                  symbolArray[symbolId].buyPositionsVolume +=  NormalizeDouble(PositionVolume(positionTicket), 2);
                   symbolArray[symbolId].buyPositionsLevelVolume +=  PositionVolume(positionTicket) * PositionOpenPrice(positionTicket);
                   symbolArray[symbolId].buyPositionsProfit +=  PositionProfit(positionTicket);
 
@@ -262,7 +262,7 @@ void calculateRisk() {
                }
                if(PositionType(positionTicket) == ORDER_TYPE_SELL) {
                   symbolArray[symbolId].sellPositionsCount += 1;
-                  symbolArray[symbolId].sellPositionsVolume += NormalizeDouble(PositionVolume(positionTicket),2);
+                  symbolArray[symbolId].sellPositionsVolume += NormalizeDouble(PositionVolume(positionTicket), 2);
                   symbolArray[symbolId].sellPositionsLevelVolume += PositionVolume(positionTicket) * PositionOpenPrice(positionTicket);
                   symbolArray[symbolId].sellPositionsProfit += PositionProfit(positionTicket);
 
@@ -292,10 +292,10 @@ void calculateRisk() {
    for(int symbolId = 0; symbolId < ArraySize(symbolArray); symbolId++) {
       symbolsCount++;
       bool symbolUndefinedRisk = false;
-      double symbolPoints = SymbolInfoDouble(symbolArray[symbolId].SymbolString,SYMBOL_POINT);
+      double symbolPoints = SymbolInfoDouble(symbolArray[symbolId].SymbolString, SYMBOL_POINT);
       double symbolBid = Bid(symbolArray[symbolId].SymbolString);
-      double positionsVolumeDiff = NormalizeDouble(symbolArray[symbolId].buyPositionsVolume,2) - NormalizeDouble(symbolArray[symbolId].sellPositionsVolume,2);
-      double orderVolumeDiff = NormalizeDouble(symbolArray[symbolId].buyOrdersVolume,2) - NormalizeDouble(symbolArray[symbolId].sellOrdersVolume,2);
+      double positionsVolumeDiff = NormalizeDouble(symbolArray[symbolId].buyPositionsVolume, 2) - NormalizeDouble(symbolArray[symbolId].sellPositionsVolume, 2);
+      double orderVolumeDiff = NormalizeDouble(symbolArray[symbolId].buyOrdersVolume, 2) - NormalizeDouble(symbolArray[symbolId].sellOrdersVolume, 2);
       double volumeDiff = positionsVolumeDiff + orderVolumeDiff;
       double buyPositionsLevelAverage = symbolArray[symbolId].buyPositionsLevelVolume / symbolArray[symbolId].buyPositionsVolume;
       double sellPositionsLevelAverage = symbolArray[symbolId].sellPositionsLevelVolume / symbolArray[symbolId].sellPositionsVolume;
@@ -412,7 +412,7 @@ void calculateRisk() {
          string buyPositionsLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_buyPositionsLabel";
          string buyPositionsLabelText = IntegerToString(symbolArray[symbolId].buyPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].buyPositionsVolume, 2);
          color textColor = labelDefaultColor;
-         if(NormalizeDouble(symbolArray[symbolId].buyPositionsVolume,2) < NormalizeDouble(symbolArray[symbolId].sellPositionsVolume,2)) textColor = clrGray;
+         if(NormalizeDouble(symbolArray[symbolId].buyPositionsVolume, 2) < NormalizeDouble(symbolArray[symbolId].sellPositionsVolume, 2)) textColor = clrGray;
          if(ObjectFind(ChartID(), buyPositionsLabelObjectName) < 0) {
             createLabel(buyPositionsLabelObjectName, xCordBuyPositionsLabel, yCordSymbolsPositionsAndOrders, buyPositionsLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
          } else {
@@ -426,7 +426,7 @@ void calculateRisk() {
          string sellPositionsLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_sellPositionsLabel";
          string sellPositionsLabelText = IntegerToString(symbolArray[symbolId].sellPositionsCount) + ": " + DoubleToString(symbolArray[symbolId].sellPositionsVolume, 2);
          color textColor = labelDefaultColor;
-         if(NormalizeDouble(symbolArray[symbolId].buyPositionsVolume,2) > NormalizeDouble(symbolArray[symbolId].sellPositionsVolume,2)) textColor = clrGray;
+         if(NormalizeDouble(symbolArray[symbolId].buyPositionsVolume, 2) > NormalizeDouble(symbolArray[symbolId].sellPositionsVolume, 2)) textColor = clrGray;
          if(ObjectFind(ChartID(), sellPositionsLabelObjectName) < 0) {
             createLabel(sellPositionsLabelObjectName, xCordSellPositionsLabel, yCordSymbolsPositionsAndOrders, sellPositionsLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
          } else {
@@ -497,7 +497,7 @@ void calculateRisk() {
       // Label PositionsAndOrdersDiff
       string positionsAndOrdersDiffLabelObjectName = objectNamePrefix + symbolArray[symbolId].SymbolString + "_positionsAndOrdersDiffLabel";
       if(NormalizeDouble(positionsVolumeDiff + orderVolumeDiff, 2) != 0
-      && NormalizeDouble(symbolArray[symbolId].symbolRiskValue, 2) != 0) {
+            && NormalizeDouble(symbolArray[symbolId].symbolRiskValue, 2) != 0) {
          int xCordPositionsAndOrdersDiffLabel = 460;
          string positionsAndOrdersDiffLabelText = DoubleToString(volumeDiff, 2);
          color textColor = labelDefaultColor;
@@ -562,22 +562,22 @@ void calculateRisk() {
 
       yCordSymbolsPositionsAndOrders += rowHigh;
    }
-   
-      // Label AccountRisk
-      string accountRiskLabelObjectName = objectNamePrefix + "_accountRiskLabel";
-      if(NormalizeDouble(accountRiskValue, 0) != 0) {
-         int xCordAccountRiskLabel = 20;
-         double accountRiskPercent = accountRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
-         string accountRiskLabelText = "AccountRisk: " + DoubleToString(accountRiskValue, 0) +  " € (" + DoubleToString(accountRiskPercent, 1) + " %)";
-         color textColor = labelDefaultColor;
-         if(accountRiskPercent > InpMaxAccountRiskPercent) textColor = clrRed;
-         if(ObjectFind(ChartID(), accountRiskLabelObjectName) < 0) {
-            createLabel(accountRiskLabelObjectName, xCordAccountRiskLabel, 10, accountRiskLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
-         } else {
-            ObjectSetString(ChartID(), accountRiskLabelObjectName, OBJPROP_TEXT, accountRiskLabelText);
-            ObjectSetInteger(ChartID(), accountRiskLabelObjectName, OBJPROP_COLOR, textColor);
-         }
+
+// Label AccountRisk
+   string accountRiskLabelObjectName = objectNamePrefix + "_accountRiskLabel";
+   if(NormalizeDouble(accountRiskValue, 0) != 0) {
+      int xCordAccountRiskLabel = 20;
+      double accountRiskPercent = accountRiskValue / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
+      string accountRiskLabelText = "AccountRisk: " + DoubleToString(accountRiskValue, 0) +  " € (" + DoubleToString(accountRiskPercent, 1) + " %)";
+      color textColor = labelDefaultColor;
+      if(accountRiskPercent > InpMaxAccountRiskPercent) textColor = clrRed;
+      if(ObjectFind(ChartID(), accountRiskLabelObjectName) < 0) {
+         createLabel(accountRiskLabelObjectName, xCordAccountRiskLabel, 10, accountRiskLabelText, fontSize, textColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
+      } else {
+         ObjectSetString(ChartID(), accountRiskLabelObjectName, OBJPROP_TEXT, accountRiskLabelText);
+         ObjectSetInteger(ChartID(), accountRiskLabelObjectName, OBJPROP_COLOR, textColor);
       }
+   }
 }
 
 //+------------------------------------------------------------------+
@@ -614,7 +614,7 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
 
    if(PositionType(pPositionTicket) == ORDER_TYPE_BUY) {
       positionStruct.buyPositionsCount = 1;
-      positionStruct.buyPositionsVolume = NormalizeDouble(PositionVolume(pPositionTicket),2);
+      positionStruct.buyPositionsVolume = NormalizeDouble(PositionVolume(pPositionTicket), 2);
       positionStruct.buyPositionsLevelVolume =  PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
       positionStruct.buyPositionsProfit =  PositionProfit(pPositionTicket);
       if(PositionStopLoss(pPositionTicket) != 0) {
@@ -626,7 +626,7 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
    }
    if(PositionType(pPositionTicket) == ORDER_TYPE_SELL) {
       positionStruct.sellPositionsCount = 1;
-      positionStruct.sellPositionsVolume = NormalizeDouble(PositionVolume(pPositionTicket),2);
+      positionStruct.sellPositionsVolume = NormalizeDouble(PositionVolume(pPositionTicket), 2);
       positionStruct.sellPositionsLevelVolume = PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
       positionStruct.sellPositionsProfit = PositionProfit(pPositionTicket);
       if(PositionStopLoss(pPositionTicket) != 0) {
@@ -668,7 +668,7 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
    return positionStruct;
 }
 
-bool getTradeHistoryProfit(const string pSymbolString, const datetime pFirstInDatetime, datetime pToDatetime = 0){
+bool getTradeHistoryProfit(const string pSymbolString, const datetime pFirstInDatetime, datetime pToDatetime = 0) {
 
    ResetLastError();
 
@@ -681,7 +681,7 @@ bool getTradeHistoryProfit(const string pSymbolString, const datetime pFirstInDa
 
    for(int tradeHistoryIndex = 0; tradeHistoryIndex < TradeHistory.Total(); tradeHistoryIndex++) {
       if(TradeHistory.SelectByIndex(tradeHistoryIndex)) {
-         if(TradeHistory.Symbol() == pSymbolString && TradeHistory.TimeClose() >= pFirstInDatetime){
+         if(TradeHistory.Symbol() == pSymbolString && TradeHistory.TimeClose() >= pFirstInDatetime) {
             double   netProfit   = TradeHistory.Profit() + TradeHistory.Commission() + TradeHistory.Swap();
             positionStruct.symbolTradeHistoryProfit += netProfit;
          }
