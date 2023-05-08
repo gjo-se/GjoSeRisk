@@ -32,7 +32,7 @@
 #property   copyright   "2023, GjoSe"
 #property   link        "http://www.gjo-se.com"
 #property   description "GjoSe Risk Management"
-#define     VERSION "1.5.3"
+#define     VERSION "2.0.0"
 #property   version VERSION
 #property   strict
 
