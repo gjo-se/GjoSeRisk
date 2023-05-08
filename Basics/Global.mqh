@@ -16,6 +16,7 @@ AccountStruct  accountStruct;
 
 struct PositionStruct {
    string            SymbolString;
+   int               count;
    long              openTime;
    double            avgEntryPrice;
    double            size;

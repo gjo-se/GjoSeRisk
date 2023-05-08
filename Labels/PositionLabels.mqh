@@ -17,7 +17,12 @@ void createTableHeadlineSymbol(const string pTableHeadlineString, const string p
 void createTableContentSymbol(const int pSymbolId, const int pXCord, const int pYCord) {
 
    string symbolStringLabelObjectName = OBJECT_NAME_PREFIX + symbolArray[pSymbolId].SymbolString;
-   string symbolStringLabelText = symbolArray[pSymbolId].SymbolString;
+   string positionCount;
+   if(symbolArray[pSymbolId].count > 1) {
+      positionCount = " (" + IntegerToString(symbolArray[pSymbolId].count) + ")";
+   }
+
+   string symbolStringLabelText = symbolArray[pSymbolId].SymbolString + positionCount ;
    if(ObjectFind(ChartID(), symbolStringLabelObjectName) < 0) {
       createLabel(symbolStringLabelObjectName, pXCord, pYCord, symbolStringLabelText, fontSize, labelDefaultColor, labelFontFamily, labelAngle, labelBaseCorner, labelAnchorPoint, labelIsInBackground, labelIsSelectable, labelIsSelected, labelIsHiddenInList, labelZOrder, labelChartID, labelSubWindow);
    } else {

@@ -28,6 +28,7 @@ void createPositionStructForSymbolArray() {
 
                symbolFound = true;
 
+               symbolArray[symbolId].count += 1;
                double lastEntyrPriceVolume = symbolArray[symbolId].avgEntryPrice * symbolArray[symbolId].size;
                double currentEntyrPriceVolume = PositionOpenPrice(positionTicket) * PositionVolume(positionTicket);
                double currentSize = symbolArray[symbolId].size + PositionVolume(positionTicket);
@@ -80,6 +81,7 @@ void createPositionStructForSymbolArray() {
 PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
 
    positionStruct.SymbolString = PositionSymbol(pPositionTicket);
+   positionStruct.count = 1;
    positionStruct.openTime = PositionOpenTime(pPositionTicket);
    positionStruct.size = PositionVolume(pPositionTicket);
    positionStruct.avgEntryPrice = PositionOpenPrice(pPositionTicket);
