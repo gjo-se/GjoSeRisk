@@ -35,29 +35,30 @@ void createPositionStructForSymbolArray() {
                symbolArray[symbolId].avgEntryPrice = (lastEntyrPriceVolume + currentEntyrPriceVolume) / currentSize;
 
                symbolArray[symbolId].size += PositionVolume(positionTicket);
+               double symbolPoints = SymbolInfoDouble(symbolArray[symbolId].SymbolString, SYMBOL_POINT);
 
-               double cost = PositionOpenPrice(positionTicket) * PositionVolume(positionTicket);
+               double cost = PositionVolume(positionTicket) * PositionOpenPrice(positionTicket) / symbolPoints * getPointValueBySymbol(symbolArray[symbolId].SymbolString);
                symbolArray[symbolId].cost += cost;
                accountStruct.cost += cost;
-               symbolArray[symbolId].profit += PositionProfit(positionTicket);
-               accountStruct.profit += PositionProfit(positionTicket);
+
+               double profit = MathAbs(PositionOpenPrice(positionTicket) - Bid(symbolArray[symbolId].SymbolString)) / symbolPoints * getPointValueBySymbol(symbolArray[symbolId].SymbolString);
+               symbolArray[symbolId].profit += profit;
+               accountStruct.profit += profit;
 
                if(symbolArray[symbolId].lossRisk >= SL_TP_MIN_VALUE && PositionStopLoss(positionTicket) >= SL_TP_MIN_VALUE) {
-                  double lossRisk = PositionVolume(positionTicket) * MathAbs(PositionOpenPrice(positionTicket) - PositionStopLoss(positionTicket));
+                  double lossRisk = MathAbs(PositionOpenPrice(positionTicket) - PositionStopLoss(positionTicket)) / symbolPoints * getPointValueBySymbol(symbolArray[symbolId].SymbolString) * PositionVolume(positionTicket);
                   symbolArray[symbolId].lossRisk += lossRisk;
                   accountStruct.lossRisk += lossRisk;
                } else {
                   symbolArray[symbolId].lossRisk = SL_TP_MISSING;
-                  accountStruct.lossRisk = SL_TP_MISSING;
                }
 
                if(symbolArray[symbolId].reward >= SL_TP_MIN_VALUE && PositionTakeProfit(positionTicket) >= SL_TP_MIN_VALUE) {
-                  double reward = PositionVolume(positionTicket) * MathAbs(PositionTakeProfit(positionTicket) - PositionOpenPrice(positionTicket));
+                  double reward = MathAbs(PositionOpenPrice(positionTicket) - PositionTakeProfit(positionTicket)) / symbolPoints * getPointValueBySymbol(symbolArray[symbolId].SymbolString) * PositionVolume(positionTicket);
                   symbolArray[symbolId].reward += reward;
                   accountStruct.reward += reward;
                } else {
                   symbolArray[symbolId].reward = SL_TP_MISSING;
-                  accountStruct.reward = SL_TP_MISSING;
                }
 
                if(symbolArray[symbolId].lossRisk != SL_TP_MISSING && symbolArray[symbolId].reward != SL_TP_MISSING) {
@@ -85,26 +86,30 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
    positionStruct.openTime = PositionOpenTime(pPositionTicket);
    positionStruct.size = PositionVolume(pPositionTicket);
    positionStruct.avgEntryPrice = PositionOpenPrice(pPositionTicket);
-   accountStruct.cost += positionStruct.cost = PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket);
-   accountStruct.profit += positionStruct.profit = PositionProfit(pPositionTicket);
+
+   double symbolPoints = SymbolInfoDouble(positionStruct.SymbolString, SYMBOL_POINT);
+   double cost = PositionVolume(pPositionTicket) * PositionOpenPrice(pPositionTicket) / symbolPoints * getPointValueBySymbol(positionStruct.SymbolString);
+   positionStruct.cost = cost;
+   accountStruct.cost += cost;
+
+   double profit = MathAbs(PositionOpenPrice(pPositionTicket) - Bid(positionStruct.SymbolString)) / symbolPoints * getPointValueBySymbol(positionStruct.SymbolString);
+   positionStruct.profit = profit;
+   accountStruct.profit += profit;
 
    if(PositionStopLoss(pPositionTicket) >= SL_TP_MIN_VALUE) {
-      //double symbolPoints = SymbolInfoDouble(symbolArray[symbolId].SymbolString, SYMBOL_POINT);
-      double lossRisk = PositionVolume(pPositionTicket) * MathAbs(PositionOpenPrice(pPositionTicket) - PositionStopLoss(pPositionTicket));
+      double lossRisk = MathAbs(PositionOpenPrice(pPositionTicket) - PositionStopLoss(pPositionTicket)) / symbolPoints * getPointValueBySymbol(positionStruct.SymbolString) * PositionVolume(pPositionTicket);
       positionStruct.lossRisk = lossRisk;
       accountStruct.lossRisk += lossRisk;
    } else {
       positionStruct.lossRisk = SL_TP_MISSING;
-      accountStruct.lossRisk = SL_TP_MISSING;
    }
 
    if(PositionTakeProfit(pPositionTicket) >= SL_TP_MIN_VALUE) {
-      double reward = PositionVolume(pPositionTicket) * MathAbs(PositionTakeProfit(pPositionTicket) - PositionOpenPrice(pPositionTicket));
+      double reward = MathAbs(PositionOpenPrice(pPositionTicket) - PositionTakeProfit(pPositionTicket)) / symbolPoints * getPointValueBySymbol(positionStruct.SymbolString) * PositionVolume(pPositionTicket);
       positionStruct.reward = reward;
       accountStruct.reward += reward;
    } else {
       positionStruct.reward = SL_TP_MISSING;
-      accountStruct.reward = SL_TP_MISSING;
    }
 
    if(positionStruct.lossRisk != SL_TP_MISSING && positionStruct.reward != SL_TP_MISSING) {
@@ -115,3 +120,4 @@ PositionStruct buildPositionStructForSymbolArray(const long pPositionTicket) {
 
    return positionStruct;
 }
+//+------------------------------------------------------------------+

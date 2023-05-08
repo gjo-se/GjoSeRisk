@@ -9,4 +9,7 @@ const string OBJECT_NAME_PREFIX = "GjoSeRisk_";
 
 const int SL_TP_MISSING = -1;
 const double SL_TP_MIN_VALUE = 0.01;
+
+color CLR_LEVEL_1 = clrCoral;
+color CLR_LEVEL_2 = clrCrimson;
 //+------------------------------------------------------------------+
