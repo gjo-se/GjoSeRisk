@@ -32,7 +32,7 @@
 #property   copyright   "2023, GjoSe"
 #property   link        "http://www.gjo-se.com"
 #property   description "GjoSe Risk Management"
-#define     VERSION "2.0.0"
+#define     VERSION "2.1.0"
 #property   version VERSION
 #property   strict
 
@@ -93,17 +93,17 @@ void calculateRisk() {
 
    createTableContentAccountBalance(xCordAccountBalance);
    createTableContentAccountEquity(xCordAccountEquity);
-   createTableContentAccountCost(xCordAccountCost);
-   createTableContentAccountProfit(xCordAccountPnL);
-   createTableContentAccountLossRisk(xCordAccountLossRisk);
-   createTableContentAccountReward(xCordAccountReward);
-   createTableContentAccountRRR(xCordAccountRRR);
+   createTableContentAccountCost(xCordAccountCostContent);
+   createTableContentAccountProfit(xCordAccountPnLContent);
+   createTableContentAccountLossRisk(xCordAccountLossRiskContent);
+   createTableContentAccountReward(xCordAccountRewardContent);
+   createTableContentAccountRRR(xCordAccountRRRContent);
 
    // Symbols
    createTableHeadlineSymbol("_symbolTableHeadlineSymbol", "Symbol (" + IntegerToString(symbolsCount) + ")", xCordSymbolsTableSymbol);
-   createTableHeadlineSymbol("_symbolHoldTimeString", "Hold Time", xCordSymbolsTableHoldTime);
+   createTableHeadlineSymbol("_symbolHoldTimeString", "Days", xCordSymbolsTableHoldTime);
    createTableHeadlineSymbol("_symbolSizeString", "Size", xCordSymbolsTableSize);
-   createTableHeadlineSymbol("_symbolEntryPriceString", "Entry Price", xCordSymbolsTableEntryPrice);
+   createTableHeadlineSymbol("_symbolEntryPriceString", "Price", xCordSymbolsTableEntryPrice);
    createTableHeadlineSymbol("_symbolCostString", "Cost (%)", xCordSymbolsTableCost);
    createTableHeadlineSymbol("_symbolPnLString", "PnL (%)", xCordSymbolsTablePnL);
    createTableHeadlineSymbol("_symbolLossRiskString", "LossRisk (%)", xCordSymbolsTableLossRisk);
@@ -117,14 +117,14 @@ void calculateRisk() {
       symbolsCount++;
 
       createTableContentSymbol(symbolId, xCordSymbolsTableSymbol, yCordSymbolsPositionsAndOrders);
-      createTableContentHoldTime(symbolId, xCordSymbolsTableHoldTime, yCordSymbolsPositionsAndOrders);
-      createTableContentSize(symbolId, xCordSymbolsTableSize, yCordSymbolsPositionsAndOrders);
-      createTableContentEntryPrice(symbolId, xCordSymbolsTableEntryPrice, yCordSymbolsPositionsAndOrders);
-      createTableContentCost(symbolId, xCordSymbolsTableCost, yCordSymbolsPositionsAndOrders);
-      createTableContentProfit(symbolId, xCordSymbolsTablePnL, yCordSymbolsPositionsAndOrders);
-      createTableContentLossRisk(symbolId, xCordSymbolsTableLossRisk, yCordSymbolsPositionsAndOrders);
-      createTableContentReward(symbolId, xCordSymbolsTableReward, yCordSymbolsPositionsAndOrders);
-      createTableContentRRR(symbolId, xCordSymbolsTableRRR, yCordSymbolsPositionsAndOrders);
+      createTableContentHoldTime(symbolId, xCordSymbolsTableHoldTimeContent, yCordSymbolsPositionsAndOrders);
+      createTableContentSize(symbolId, xCordSymbolsTableSizeContent, yCordSymbolsPositionsAndOrders);
+      createTableContentEntryPrice(symbolId, xCordSymbolsTableEntryPriceContent, yCordSymbolsPositionsAndOrders);
+      createTableContentCost(symbolId, xCordSymbolsTableCostContent, yCordSymbolsPositionsAndOrders);
+      createTableContentProfit(symbolId, xCordSymbolsTablePnLContent, yCordSymbolsPositionsAndOrders);
+      createTableContentLossRisk(symbolId, xCordSymbolsTableLossRiskContent, yCordSymbolsPositionsAndOrders);
+      createTableContentReward(symbolId, xCordSymbolsTableRewardContent, yCordSymbolsPositionsAndOrders);
+      createTableContentRRR(symbolId, xCordSymbolsTableRRRContent, yCordSymbolsPositionsAndOrders);
 
       yCordSymbolsPositionsAndOrders += rowHigh;
    }
@@ -146,4 +146,5 @@ void OnChartEvent(const int id,
       calculateRisk();
    }
 }
+//+------------------------------------------------------------------+
 //+------------------------------------------------------------------+
