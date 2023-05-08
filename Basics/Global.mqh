@@ -5,6 +5,26 @@
 //+------------------------------------------------------------------+
 
 CPositions      Positions;
+
+struct AccountStruct {
+   double            cost;
+   double            profit;
+   double            lossRisk;
+   double            reward;
+};
+AccountStruct  accountStruct;
+
+struct PositionStruct {
+   string            SymbolString;
+   long              openTime;
+   double            avgEntryPrice;
+   double            size;
+   double            cost;
+   double            profit;
+   double            lossRisk;
+   double            reward;
+   double            rrr;
+};
 PositionStruct  positionStruct;
 PositionStruct  symbolArray[];
 
@@ -26,7 +46,9 @@ long labelZOrder = 2;
 long labelChartID = 0;
 int  labelSubWindow = subWindow;
 int  rowHigh = 22;
-int  yCordSymbolsTableHeadline = 50;
+int  yCordAccountTableHeadline = 50;
+int  yCordAccountTableContent = 90;
+int  yCordSymbolsTableHeadline = 150;
 
 int  xCordSymbolsTableSymbol = 20;
 int  xCordSymbolsTableHoldTime = 150;
@@ -37,6 +59,14 @@ int  xCordSymbolsTablePnL = 550;
 int  xCordSymbolsTableLossRisk = 640;
 int  xCordSymbolsTableReward = 770;
 int  xCordSymbolsTableRRR = 900;
+
+int xCordAccountBalance = 20;
+int xCordAccountEquity = 150;
+int xCordAccountCost = 410;
+int xCordAccountPnL = 550;
+int xCordAccountLossRisk = 640;
+int xCordAccountReward = 770;
+int xCordAccountRRR = 900;
 
 //color clrLevel1 = clrCoral;
 //color clrLevel2 = clrCrimson;

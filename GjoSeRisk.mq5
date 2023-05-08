@@ -82,15 +82,33 @@ void calculateRisk() {
 
    int yCordSymbolsPositionsAndOrders = yCordSymbolsTableHeadline + rowHigh * 2;
 
-   createTableHeadlineString("_symbolTableHeadlineString", "Symbol (" + IntegerToString(symbolsCount) + ")", xCordSymbolsTableSymbol);
-   createTableHeadlineString("_symbolHoldTimeString", "Hold Time", xCordSymbolsTableHoldTime);
-   createTableHeadlineString("_symbolSizeString", "Size", xCordSymbolsTableSize);
-   createTableHeadlineString("_symbolEntryPriceString", "Entry Price", xCordSymbolsTableEntryPrice);
-   createTableHeadlineString("_symbolCostString", "Cost (%)", xCordSymbolsTableCost);
-   createTableHeadlineString("_symbolPnLString", "PnL (%)", xCordSymbolsTablePnL);
-   createTableHeadlineString("_symbolLossRiskString", "LossRisk (%)", xCordSymbolsTableLossRisk);
-   createTableHeadlineString("_symbolRewardString", "Reward (%)", xCordSymbolsTableReward);
-   createTableHeadlineString("_symbolRRRString", "RRR", xCordSymbolsTableRRR);
+   // Account
+   createTableHeadlineAccount("_accountTableHeadlineBalance", "Balance", xCordAccountBalance);
+   createTableHeadlineAccount("_accountTableHeadlineEquity", "Equity", xCordAccountEquity);
+   createTableHeadlineAccount("_accountTableHeadlineCost", "Cost (%)", xCordAccountCost);
+   createTableHeadlineAccount("_accountTableHeadlinePnL", "PnL (%)", xCordAccountPnL);
+   createTableHeadlineAccount("_accountTableHeadlineLossRisk", "LossRisk (%)", xCordAccountLossRisk);
+   createTableHeadlineAccount("_accountTableHeadlineReward", "Reward (%)", xCordAccountReward);
+   createTableHeadlineAccount("_accountTableHeadlineRRR", "RRR", xCordAccountRRR);
+
+   createTableContentAccountBalance(xCordAccountBalance);
+   createTableContentAccountEquity(xCordAccountEquity);
+   createTableContentAccountCost(xCordAccountCost);
+   createTableContentAccountProfit(xCordAccountPnL);
+   createTableContentAccountLossRisk(xCordAccountLossRisk);
+   createTableContentAccountReward(xCordAccountReward);
+   createTableContentAccountRRR(xCordAccountRRR);
+
+   // Symbols
+   createTableHeadlineSymbol("_symbolTableHeadlineSymbol", "Symbol (" + IntegerToString(symbolsCount) + ")", xCordSymbolsTableSymbol);
+   createTableHeadlineSymbol("_symbolHoldTimeString", "Hold Time", xCordSymbolsTableHoldTime);
+   createTableHeadlineSymbol("_symbolSizeString", "Size", xCordSymbolsTableSize);
+   createTableHeadlineSymbol("_symbolEntryPriceString", "Entry Price", xCordSymbolsTableEntryPrice);
+   createTableHeadlineSymbol("_symbolCostString", "Cost (%)", xCordSymbolsTableCost);
+   createTableHeadlineSymbol("_symbolPnLString", "PnL (%)", xCordSymbolsTablePnL);
+   createTableHeadlineSymbol("_symbolLossRiskString", "LossRisk (%)", xCordSymbolsTableLossRisk);
+   createTableHeadlineSymbol("_symbolRewardString", "Reward (%)", xCordSymbolsTableReward);
+   createTableHeadlineSymbol("_symbolRRRString", "RRR", xCordSymbolsTableRRR);
 
    createPositionStructForSymbolArray();
 

@@ -9,10 +9,10 @@
 
 #include <GjoSe\\Utilities\\InclBasicUtilities.mqh>
 #include <GjoSe\\Objects\\InclLabel.mqh>
-#include "..\\Labels\\TradeUtilities.mqh"
 
 #include "Global.mqh"
 
+#include "..\\Labels\\AccountLabels.mqh"
 #include "..\\Labels\\PositionLabels.mqh"
 #include "..\\Labels\\Position.mqh"
 

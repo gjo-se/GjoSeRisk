@@ -4,7 +4,7 @@
 //|                                       http://www.gjo-se.com      |
 //+------------------------------------------------------------------+
 
-void createTableHeadlineString(const string pTableHeadlineString, const string pTableHeadlineLabeltext, const int pXCord) {
+void createTableHeadlineSymbol(const string pTableHeadlineString, const string pTableHeadlineLabeltext, const int pXCord) {
 
    string positionStringLabelObjectName = OBJECT_NAME_PREFIX + pTableHeadlineString;
    if(ObjectFind(ChartID(), positionStringLabelObjectName) < 0) {
@@ -101,7 +101,6 @@ void createTableContentLossRisk(const int pSymbolId, const int pXCord, const int
    } else {
       ObjectSetString(ChartID(), lossRiskLabelObjectName, OBJPROP_TEXT, lossRiskLabelText);
    }
-
 }
 
 void createTableContentReward(const int pSymbolId, const int pXCord, const int pYCord) {
