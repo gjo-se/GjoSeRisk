@@ -16,6 +16,8 @@
    1.5.1    fixed Positions and Orders Count & Volume
    1.5.2    fixed Volume Columns
    1.5.3    added Risk & ProfitLabels
+   2.1.0    massive Vereinfachungen im Code + Account
+   2.1.1    fixed LossRisk Logik
 
    ===============
 
@@ -32,7 +34,7 @@
 #property   copyright   "2023, GjoSe"
 #property   link        "http://www.gjo-se.com"
 #property   description "GjoSe Risk Management"
-#define     VERSION "2.1.0"
+#define     VERSION "2.1.1"
 #property   version VERSION
 #property   strict
 

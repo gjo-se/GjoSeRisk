@@ -98,7 +98,7 @@ void createTableContentAccountRRR(const int pXCord) {
    if(rrr < InpMinRRRLevel1) textColor = CLR_LEVEL_1;
    if(rrr < InpMinRRRLevel2) textColor = CLR_LEVEL_2;
    if(accountStruct.lossRisk >= SL_TP_MIN_VALUE && accountStruct.reward >= SL_TP_MIN_VALUE) {
-      labelText = DoubleToString(rrr, 1);
+      labelText = DoubleToString(rrr, 0);
    } else {
       labelText = "SL | TP";
    }

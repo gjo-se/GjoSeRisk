@@ -96,7 +96,15 @@ void createTableContentLossRisk(const int pSymbolId, const int pXCord, const int
 
    string lossRiskLabelObjectName = OBJECT_NAME_PREFIX + symbolArray[pSymbolId].SymbolString + "_lossRisk";
    double lossRiskPercent = symbolArray[pSymbolId].lossRisk / AccountInfoDouble(ACCOUNT_EQUITY) * 100;
-   string lossRiskLabelText = (symbolArray[pSymbolId].lossRisk >= SL_TP_MIN_VALUE) ? DoubleToString(symbolArray[pSymbolId].lossRisk, 0) +  " € (" + DoubleToString(lossRiskPercent, 1) + " %)" : "SL setzen";
+   string lossRiskLabelText;
+   if(symbolArray[pSymbolId].lossRisk > 0){
+      lossRiskLabelText = DoubleToString(symbolArray[pSymbolId].lossRisk, 0) +  " € (" + DoubleToString(lossRiskPercent, 1) + " %)";
+   }
+   else if(symbolArray[pSymbolId].lossRisk == 0){
+      lossRiskLabelText = "-------";
+   }else{
+      lossRiskLabelText = "SL setzen";
+   }
    color textColor = labelDefaultColor;
    if(lossRiskPercent > InpMaxSymboLossRiskLevel1Percent) textColor = CLR_LEVEL_1;
    if(lossRiskPercent > InpMaxSymbolLossRiskLevel2Percent) textColor = CLR_LEVEL_2;
@@ -123,7 +131,7 @@ void createTableContentReward(const int pSymbolId, const int pXCord, const int p
 void createTableContentRRR(const int pSymbolId, const int pXCord, const int pYCord) {
 
    string rrrLabelObjectName = OBJECT_NAME_PREFIX + symbolArray[pSymbolId].SymbolString + "_rrr";
-   string rrrLabelText = (symbolArray[pSymbolId].rrr >= SL_TP_MIN_VALUE) ? DoubleToString(symbolArray[pSymbolId].rrr, 1) : "SL | TP";
+   string rrrLabelText = (symbolArray[pSymbolId].rrr >= SL_TP_MIN_VALUE) ? DoubleToString(symbolArray[pSymbolId].rrr, 0) : "SL | TP";
    color textColor = labelDefaultColor;
    if(symbolArray[pSymbolId].rrr < InpMinRRRLevel1) textColor = CLR_LEVEL_1;
    if(symbolArray[pSymbolId].rrr < InpMinRRRLevel2) textColor = CLR_LEVEL_2;
